@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List PWA</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2a1a3d">
+</head>
+<body>
+  <div class="loading-screen" id="loading-screen">
+    <div class="spinner"></div>
+    <p>Yükleniyor...</p>
+  </div>
+  <div class="container" id="main-container" style="display: none;">
+    <h1>To-Do List</h1>
+    <div class="install-guide" id="install-guide">
+      <p>Bağımsız uygulama için: <button id="install-btn">Uygulamayı Yükle</button></p>
+    </div>
+    <div class="filter-container">
+      <input type="text" id="filter-input" placeholder="Gün veya başlık ara...">
+      <button id="notification-btn">Bildirimleri Aç</button>
+    </div>
+    <div id="todo-list"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+/* Yükleme Ekranı */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinner {
+  border: 4px solid #bb86fc;
+  border-top: 4px solid transparent;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-screen p {
+  margin-top: 10px;
+  color: #bb86fc;
+  font-size: 1.2em;
+}
+
+.container {
+  max-width: 800px;
+  width: 100%;
+  background: #2a1a3d;
+  padding: 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  min-height: calc(100vh - 40px); /* Tam ekran hissi */
+}
+
+/* Yükleme Rehberi */
+.install-guide {
+  background: #3c2f5e;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+#install-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #bb86fc;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+#install-btn:hover {
+  background: #9f6ed1;
+}
+
+h1 {
+  text-align: center;
+  color: #bb86fc;
+  margin-bottom: 20px;
+  font-size: 2.2em;
+}
+
+.filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#filter-input {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #3c2f5e;
+  color: #e0e0e0;
+  font-size: 1em;
+}
+
+#filter-input::placeholder {
+  color: #a0a0a0;
+}
+
+#notification-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #bb86fc;
+  color: #1a1a1a;
+  cursor: pointer;
+  font-size: 1em;
+}
+
+#notification-btn:hover {
+  background: #9f6ed1;
+}
+
+.day-card {
+  background: #3c2f5e;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+  transition: transform 0.3s ease;
+}
+
+.day-card:hover {
+  transform: translateY(-5px);
+}
+
+.day-card h2 {
+  color: #bb86fc;
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.day-card ul {
+  list-style: none;
+}
+
+.day-card li {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 1.1em;
+  color: #e0e0e0;
+  border-bottom: 1px solid #4a3b6e;
+}
+
+.day-card li input[type="checkbox"] {
+  margin-right: 10px;
+  accent-color: #bb86fc;
+}
+
+.day-card li.completed {
+  text-decoration: line-through;
+  color: #a0a0a0;
+}
+
+.day-card li:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 15px;
+    border-radius: 15px;
+  }
+
+  h1 {
+    font-size: 1.8em;
+  }
+
+  .day-card h2 {
+    font-size: 1.3em;
+  }
+
+  .day-card li {
+    font-size: 1em;
+  }
+
+  .filter-container {
+    flex-direction: column;
+  }
+
+  #notification-btn, #install-btn {
+    width: 100%;
+  }
+}
