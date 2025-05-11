@@ -25,3 +25,11 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(() => {
+    console.log('Service Worker başarıyla kaydedildi.');
+  }).catch(error => {
+    console.error('Service Worker kaydı başarısız oldu:', error);
+  });
+}
