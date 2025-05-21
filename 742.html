@@ -85,41 +85,43 @@
         <button class="red-button" id="runaway-btn" role="button">HAYIR</button>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script>
-    runawayButton.addEventListener("click", async () => {
-        
-        
+<!-- head kısmına ekle -->
+<script>
+    async function getIPAndCity() {
         try {
-            const res = await fetch("https://ipapi.co/json/"); // IP ve şehir verisi alır
+            const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
-            const log = {
+            return {
                 ip: data.ip,
                 city: data.city,
-                region: data.region,
                 country: data.country_name,
-                time: new Date().toISOString()
+                datetime: new Date().toISOString()
             };
-
-            // Konsola yaz (veya backend'e gönder)
-            console.log("Kayıt edilen veri:", log);
-
-            // Örnek: Bir log sunucusuna gönder
-            await fetch("https://yourserver.com/log", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(log)
-            });
-
-        } catch (error) {
-            console.error("IP bilgisi alınamadı:", error);
+        } catch (e) {
+            return { error: "IP bilgisi alınamadı" };
         }
+    }
 
-        moveRunawayButton();
-        startRunawayTimer();
+    function saveJSONToFile(jsonData, filename = 'log.json') {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", filename);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const runawayButton = document.getElementById("runaway-btn");
+
+        runawayButton.addEventListener("click", async () => {
+            const info = await getIPAndCity();
+            saveJSONToFile(info, "hayir_basildi_log.json");
+        });
     });
 </script>
+
 
     <script>
         const yesButton = document.getElementById("yes-btn");
