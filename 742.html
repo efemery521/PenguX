@@ -87,39 +87,25 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 <!-- head kısmına ekle -->
 <script>
-    async function getIPAndCity() {
-        try {
-            const res = await fetch('https://ipapi.co/json/');
-            const data = await res.json();
-            return {
-                ip: data.ip,
-                city: data.city,
-                country: data.country_name,
-                datetime: new Date().toISOString()
-            };
-        } catch (e) {
-            return { error: "IP bilgisi alınamadı" };
-        }
-    }
+fetch('https://ipapi.co/json/')
+  .then(res => res.json())
+  .then(data => {
+    const jsonToSend = {
+      ip: data.ip,
+      city: data.city,
+      country: data.country_name,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString()
+    };
 
-    function saveJSONToFile(jsonData, filename = 'log.json') {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(jsonData, null, 2));
-        const dlAnchor = document.createElement('a');
-        dlAnchor.setAttribute("href", dataStr);
-        dlAnchor.setAttribute("download", filename);
-        document.body.appendChild(dlAnchor);
-        dlAnchor.click();
-        dlAnchor.remove();
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const runawayButton = document.getElementById("runaway-btn");
-
-        runawayButton.addEventListener("click", async () => {
-            const info = await getIPAndCity();
-            saveJSONToFile(info, "hayir_basildi_log.json");
-        });
+    fetch('http://meteoiot.com.tr/ip', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(jsonToSend)
     });
+  });
 </script>
 
 
