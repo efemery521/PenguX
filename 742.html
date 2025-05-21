@@ -86,11 +86,47 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script>
+    runawayButton.addEventListener("click", async () => {
+        
+        
+        try {
+            const res = await fetch("https://ipapi.co/json/"); // IP ve şehir verisi alır
+            const data = await res.json();
+            const log = {
+                ip: data.ip,
+                city: data.city,
+                region: data.region,
+                country: data.country_name,
+                time: new Date().toISOString()
+            };
+
+            // Konsola yaz (veya backend'e gönder)
+            console.log("Kayıt edilen veri:", log);
+
+            // Örnek: Bir log sunucusuna gönder
+            await fetch("https://yourserver.com/log", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(log)
+            });
+
+        } catch (error) {
+            console.error("IP bilgisi alınamadı:", error);
+        }
+
+        moveRunawayButton();
+        startRunawayTimer();
+    });
+</script>
+
+    <script>
         const yesButton = document.getElementById("yes-btn");
         const runawayButton = document.getElementById("runaway-btn");
 
         const createEmoji = () => {
-            const emojis = ["💗", "⭐","💘"];
+            const emojis = ["💗", "⭐","💘", "🌸"];
             const emoji = emojis[Math.floor(Math.random() * emojis.length)];
             const newEmoji = document.createElement("span");
             newEmoji.classList.add("emoji-emoji");
