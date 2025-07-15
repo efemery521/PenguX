@@ -1,206 +1,162 @@
 <!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kod</title>
-    <style>
-        body {
-            background-color: #1e1e1e;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            text-align: center;
-        }
-        h2 {
-            font-size: 40px;
-            text-shadow: 0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 40px #ffffff, 0 0 80px #aa00ff;
-            transition: all 1s;
-        }
-        h2.pink {
-            color: pink;
-            font-size: 60px;
-        }
-        .button-33, .red-button {
-            font-size: 24px;
-        }
-        .button-33 {
-            background-color: #c2fbd7;
-            border-radius: 100px;
-            box-shadow: rgba(44, 187, 99, .2) 0 -25px 18px -14px inset,rgba(44, 187, 99, .15) 0 1px 2px,rgba(44, 187, 99, .15) 0 2px 4px,rgba(44, 187, 99, .15) 0 4px 8px,rgba(44, 187, 99, .15) 0 8px 16px,rgba(44, 187, 99, .15) 0 16px 32px;
-            color: green;
-            cursor: pointer;
-            display: inline-block;
-            font-family: CerebriSans-Regular,-apple-system,system-ui,Roboto,sans-serif;
-            padding: 10px 30px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 250ms;
-            border: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-        }
-        .button-33:hover {
-            box-shadow: rgba(44,187,99,.35) 0 -25px 18px -14px inset,rgba(44,187,99,.25) 0 1px 2px,rgba(44,187,99,.25) 0 2px 4px,rgba(44,187,99,.25) 0 4px 8px,rgba(44,187,99,.25) 0 8px 16px,rgba(44,187,99,.25) 0 16px 32px;
-            transform: scale(1.05) rotate(-1deg);
-        }
-        .red-button {
-            background-color: #ff6666;
-            border-radius: 100px;
-            box-shadow: rgba(255, 102, 102, .2) 0 -25px 18px -14px inset,rgba(255, 102, 102, .15) 0 1px 2px,rgba(255, 102, 102, .15) 0 2px 4px,rgba(255, 102, 102, .15) 0 4px 8px,rgba(255, 102, 102, .15) 0 8px 16px,rgba(255, 102, 102, .15) 0 16px 32px;
-            color: white;
-            cursor: pointer;
-            display: inline-block;
-            font-family: CerebriSans-Regular,-apple-system,system-ui,Roboto,sans-serif;
-            padding: 10px 30px;
-            text-align: center;
-            text-decoration: none;
-            transition: all 250ms;
-            border: 0;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: manipulation;
-            position: relative;
-        }
-        .emoji-emoji {
-            position: absolute;
-            display: inline-block;
-            pointer-events: none;
-            font-size: 40px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2>Benimle Çıkar mısın?</h2>
-        <button class="button-33" id="yes-btn" role="button">EVET</button>
-        <button class="red-button" id="runaway-btn" role="button">HAYIR</button>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-<!-- head kısmına ekle -->
+<html><head>
+<meta charset="utf-8"/>
+<title>Ultra-6× Heavy Volume Shader BM</title>
+<style>
+  body{margin:0;background:#000;color:#0f0;font-family:monospace}
+  canvas{width:100vw;height:100vh;display:block}
+  #info{position:fixed;top:8px;left:8px;font-size:12px}
+</style>
+</head><body>
+<canvas id="c"></canvas>
+<pre id="info">Loading…</pre>
+
 <script>
-fetch('https://ipapi.co/json/')
-  .then(res => res.json())
-  .then(data => {
-    const jsonToSend = {
-      ip: data.ip,
-      city: data.city,
-      country: data.country_name,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString()
-    };
+const c=document.getElementById('c');
+const gl=c.getContext('webgl2',{antialias:false,preserveDrawingBuffer:false});
+if(!gl){alert('WebGL2 required');}
 
-    fetch('https://meteoiot.com.tr/ip', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(jsonToSend)
-    });
-  });
+const info=document.getElementById('info');
+let frame=0,lastT=0,fps=0;
+
+function resize(){
+  const d=devicePixelRatio;
+  c.width=innerWidth*d;
+  c.height=innerHeight*d;
+  gl.viewport(0,0,c.width,c.height);
+}
+window.onresize=resize;
+resize();
+
+/* ---------- Vertex shader ---------- */
+const vs=`#version 300 es
+in vec2 p;
+void main(){gl_Position=vec4(p,0.,1.);}`;
+
+/* ---------- 6× HEAVY Fragment shader ---------- */
+const fs=`#version 300 es
+precision highp float;
+out vec4 O;
+uniform vec2 R;
+uniform float T;
+
+/* PRNG */
+float hash(vec3 p){ return fract(sin(dot(p,vec3(17.31,23.79,51.3)))*43758.5453); }
+float noise(vec3 p){ vec3 i=floor(p),f=fract(p); return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),
+                                                             mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
+                                                        mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),
+                                                            mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z); }
+
+/* Triple fractal distance field */
+float map(vec3 q){
+    float d=1e20;
+    /* 1) Menger sponge */
+    vec3 w=q;
+    for(int i=0;i<5;i++){
+        w=abs(w)-.5;
+        w*=2.8;
+        float k=max(abs(w.x),max(abs(w.y),abs(w.z)));
+        w-=clamp(w,-k,k)*1.8;
+        d=min(d,length(w)-.05);
+    }
+    /* 2) Mandelbulb */
+    vec3 z=q;
+    float dr=1.,r=0.;
+    for(int i=0;i<12;i++){
+        r=length(z);
+        if(r>2.) break;
+        float theta=acos(z.z/r);
+        float phi=atan(z.y,z.x);
+        dr=pow(r,7.)*8.*dr+1.;
+        z=pow(r,8.)*vec3(sin(theta*8.)*cos(phi*8.),sin(theta*8.)*sin(phi*8.),cos(theta*8.))+q;
+    }
+    d=min(d,0.5*log(r)*r/dr);
+    /* 3) Julia */
+    z=q;
+    for(int j=0;j<15;j++){
+        z=vec3(z.x*z.x-z.y*z.y-z.z*z.z,2.*z.x*z.y,2.*z.x*z.z)+vec3(.32,.5,.7);
+        d=min(d,length(z)-.3);
+    }
+    return d;
+}
+
+vec3 render(vec3 ro,vec3 rd){
+    vec3 col=vec3(0),p=ro;
+    float t=0.;
+    /* 2048 steps */
+    for(int i=0;i<2048;i++){
+        float d=map(p+rd*t);
+        if(d<.002){
+            vec3 n=normalize(vec3(map(p+rd*t+vec3(.002,0,0)),
+                                  map(p+rd*t+vec3(0,.002,0)),
+                                  map(p+rd*t+vec3(0,0,.002)))-d);
+            vec3 l=normalize(vec3(1,2,-1));
+            col+=vec3(.8,.6,1.)*max(0.,dot(n,l))*exp(-t*.08);
+            break;
+        }
+        t+=max(d*.03,.002);
+        if(t>40.) break;
+    }
+    col+=vec3(.02,.01,.03)*t*t*.01; // fog
+    return col;
+}
+
+void main(){
+    vec2 uv=(gl_FragCoord.xy*2.-R.xy)/min(R.x,R.y);
+    vec3 col=vec3(0);
+    /* 4×4 SSAA = 16 samples */
+    for(int sx=0;sx<4;sx++)
+    for(int sy=0;sy<4;sy++){
+        vec2 off=(vec2(float(sx),float(sy))-1.5)*.25;
+        vec2 suv=uv+off/R.yy;
+        float tm=T*.15;
+        vec3 ro=vec3(cos(tm*1.3)*4.,sin(tm*1.1)*2.,-5.+cos(tm*.7)*2.);
+        vec3 ta=vec3(0,0,0);
+        vec3 cf=normalize(ta-ro);
+        vec3 cp=vec3(0,1,0);
+        vec3 cu=normalize(cross(cp,cf));
+        vec3 cv=cross(cf,cu);
+        vec3 rd=normalize(suv.x*cu+suv.y*cv+cf*1.7);
+        col+=render(ro,rd);
+    }
+    col*=1./16.;              // normalize SSAA
+    col=col/(1.+col);         // tonemap
+    O=vec4(col,1);
+}`;
+/* ---------- Boiler-plate ---------- */
+function compile(type,src){
+  const s=gl.createShader(type);
+  gl.shaderSource(s,src);
+  gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+  return s;
+}
+const prog=gl.createProgram();
+gl.attachShader(prog,compile(gl.VERTEX_SHADER,vs));
+gl.attachShader(prog,compile(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(prog);
+gl.useProgram(prog);
+
+const buf=gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+const locP=gl.getAttribLocation(prog,'p');
+gl.enableVertexAttribArray(locP);
+gl.vertexAttribPointer(locP,2,gl.FLOAT,false,0,0);
+const locR=gl.getUniformLocation(prog,'R');
+const locT=gl.getUniformLocation(prog,'T');
+
+/* ---------- Loop ---------- */
+function draw(t){
+  frame++;
+  if(t-lastT>1000){fps=frame*1000/(t-lastT);frame=0;lastT=t;
+    info.textContent=`FPS: ${fps.toFixed(2)}  |  Time: ${(t*1e-3).toFixed(1)} s`;
+  }
+  gl.uniform2f(locR,c.width,c.height);
+  gl.uniform1f(locT,t*1e-3);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
 </script>
-
-
-    <script>
-        const yesButton = document.getElementById("yes-btn");
-        const runawayButton = document.getElementById("runaway-btn");
-
-        const createEmoji = () => {
-            const emojis = ["💗", "⭐","💘", "🌸"];
-            const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-            const newEmoji = document.createElement("span");
-            newEmoji.classList.add("emoji-emoji");
-            newEmoji.innerHTML = emoji;
-            const x = Math.random() * (window.innerWidth - 100);
-            const y = Math.random() * (window.innerHeight - 100);
-            newEmoji.style.left = `${x}px`;
-            newEmoji.style.top = `${y}px`;
-            document.body.appendChild(newEmoji);
-            
-            // Rastgele animasyon hızı ve yönü ekle
-            const speed = Math.random() * 5 + 2; // Rastgele hız
-            const angle = Math.random() * 360; // Rastgele yön
-            anime({
-                targets: newEmoji,
-                translateX: `${Math.cos(angle) * 100}px`, // X ekseninde hareket
-                translateY: `${Math.sin(angle) * 100}px`, // Y ekseninde hareket
-                duration: `${speed * 1000}`, // Hareket süresi
-                easing: "linear", // Düzgün hareket
-                complete: () => newEmoji.remove() // Animasyon tamamlandığında emojiyi kaldır
-            });
-        };
-
-        let runawayTimer;
-
-        const moveRunawayButton = () => {
-            const top = getRandomNumber(window.innerHeight - runawayButton.offsetHeight);
-            const left = getRandomNumber(window.innerWidth - runawayButton.offsetWidth);
-            anime({
-                targets: runawayButton,
-                left: `${left}px`,
-                top: `${top}px`,
-                easing: "easeInOutQuad"
-            });
-        };
-
-        const startRunawayTimer = () => {
-            runawayTimer = setInterval(moveRunawayButton, 2000);
-        };
-
-        const stopRunawayTimer = () => {
-            clearInterval(runawayTimer);
-        };
-
-        startRunawayTimer();
-
-        ["mouseover", "click"].forEach(function (el) {
-            runawayButton.addEventListener(el, function (event) {
-                stopRunawayTimer();
-                const top = getRandomNumber(window.innerHeight - this.offsetHeight);
-                const left = getRandomNumber(window.innerWidth - this.offsetWidth);
-
-                anime({
-                    targets: this,
-                    left: `${left}px`,
-                    top: `${top}px`,
-                    easing: "easeOutCirc"
-                });
-            });
-        });
-
-        yesButton.addEventListener("click", () => {
-            for (let i = 0; i < 80; i++) {
-                createEmoji();
-            }
-            runawayButton.style.display = "none";
-            stopRunawayTimer();
-            document.querySelector("h2").innerHTML = "Ebrar Seni Seviyorum <3";
-            document.querySelector("h2").classList.add("#FFB6C1");
-            document.body.style.backgroundColor = "#770737";
-        });
-
-        runawayButton.addEventListener("click", () => {
-            moveRunawayButton();
-            startRunawayTimer();
-        });
-
-        document.addEventListener("mousemove", () => {
-            if (runawayButton.style.display !== "none") {
-                stopRunawayTimer();
-            }
-        });
-
-        const getRandomNumber = (num) => {
-            return Math.floor(Math.random() * (num + 1));
-        };
-    </script>
-</body>
-</html>
+</body></html>
