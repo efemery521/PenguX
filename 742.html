@@ -1,205 +1,105 @@
 <!DOCTYPE html>
 <html><head>
 <meta charset="utf-8"/>
-<title>1080p Death Shader – 0.01 FPS Target</title>
+<title>1080p Death Fast</title>
 <style>
-  body{margin:0;background:#000;color:#0f0;font:10px monospace}
+  body{margin:0;background:#000;color:#0f0;font:12px monospace}
   canvas{width:100vw;height:100vh;display:block}
   #info{position:fixed;top:4px;left:4px}
-</style>
-</head><body>
+</style></head><body>
 <canvas id="c"></canvas>
 <pre id="info">Loading…</pre>
 
 <script>
 const c=document.getElementById('c');
 const gl=c.getContext('webgl2',{antialias:false});
-if(!gl){alert('WebGL2 unavailable');}
 const info=document.getElementById('info');
-let frame=0,lastT=0,fps=0;
+if(!gl){info.textContent='WebGL2 unavailable';throw 0;}
 
-/* 1080p fixed */
 function resize(){
   c.width=1920;
   c.height=1080;
   gl.viewport(0,0,c.width,c.height);
 }
 resize();
-window.onresize=resize;
 
-/* ---------- Vertex shader ---------- */
 const vs=`#version 300 es
 in vec2 p;
 void main(){gl_Position=vec4(p,0.,1.);}`;
 
-/* ---------- Fragment shader ---------- */
 const fs=`#version 300 es
 precision highp float;
 out vec4 O;
-uniform vec2 R;
 uniform float T;
-
-/* 64-bit hash */
-uvec2 h64(uvec2 x){
-    x+=x.yx*443897987u;
-    x^=x.yx>>11u;
-    x+=x.yx*981729233u;
-    return x;
-}
-float rand(vec3 p){
-    uvec2 v=h64(floatBitsToUint(p));
-    return float(v.x+v.y)*2.3283064365386963e-10;
-}
-
-/* 128-octave fBM */
-float fbm(vec3 p){
-    float v=0.,w=1.;
-    for(int i=0;i<128;i++){
-        v+=w*rand(p);
-        p*=2.1;
-        w*=.5;
-    }
-    return v;
-}
-
-/* Quintuple fractal field */
+#define STEPS 8192
 float map(vec3 q){
     float d=1e20;
-    /* 1) Menger 6 iter */
-    vec3 w=q;
-    for(int i=0;i<6;i++){
-        w=abs(w)-.6;
-        w*=3.2;
-        float k=max(abs(w.x),max(abs(w.y),abs(w.z)));
-        w-=clamp(w,-k,k)*2.2;
-        d=min(d,length(w)-.02);
+    for(int i=0;i<5;i++){
+        q=abs(q)-.6;q*=3.2;
+        d=min(d,length(q)-.03);
     }
-    /* 2) Mandelbox 8 iter */
-    w=q;
-    for(int i=0;i<8;i++){
-        w=clamp(w,-1.,1.)*2.-w;
-        w*=2.7;
-        w-=vec3(.4,.5,.6);
-        d=min(d,length(w)-.05);
-    }
-    /* 3) Mandelbulb power 11 */
-    w=q;
-    float dr=1.,r=0.;
-    for(int i=0;i<15;i++){
-        r=length(w);
-        if(r>2.) break;
-        float t=acos(w.z/r);
-        float p=atan(w.y,w.x);
-        dr=pow(r,10.)*11.*dr+1.;
-        w=pow(r,11.)*vec3(sin(t*11.)*cos(p*11.),sin(t*11.)*sin(p*11.),cos(t*11.))+q;
-    }
-    d=min(d,0.5*log(r)*r/dr);
-    /* 4) Kaleidoscopic IFS 9 iter */
-    w=q;
-    for(int i=0;i<9;i++){
-        w=abs(w);
-        if(w.x+w.y<0.) w=vec3(-w.y,-w.x,w.z);
-        if(w.x<0.) w=vec3(-w.x,w.y,w.z);
-        if(w.y<0.) w=vec3(w.x,-w.y,w.z);
-        w*=2.1;
-        w-=vec3(1,1,1);
-    }
-    d=min(d,length(w)-.03);
-    /* 5) Quaternion Julia */
-    vec4 z=vec4(q,0.);
-    vec4 c=vec4(.35,.5,.65,.2);
-    for(int i=0;i<18;i++){
-        z=vec4(z.x*z.x-dot(z.yzw,z.yzw),2.*z.x*z.yzw)+c;
-        if(dot(z,z)>4.) break;
-    }
-    d=min(d,length(z.xyz)-.04);
-
-    /* fBM displacement */
-    d+=fbm(q*6.)*.12;
     return d;
 }
-
-/* Pathtracing 3-bounce */
 vec3 render(vec3 ro,vec3 rd){
-    vec3 col=vec3(0),mask=vec3(1);
-    for(int bounce=0;bounce<3;bounce++){
-        float t=0.;
-        /* 65 536 steps */
-        for(int i=0;i<65536;i++){
-            vec3 p=ro+rd*t;
-            float d=map(p);
-            if(d<.0003){
-                vec3 n=normalize(vec3(map(p+vec3(.0003,0,0)),
-                                      map(p+vec3(0,.0003,0)),
-                                      map(p+vec3(0,0,.0003)))-d);
-                vec3 l=normalize(vec3(1,2,-2)+rand(p));
-                vec3 diff=vec3(.8,.9,1.)*max(0.,dot(n,l));
-                vec3 spec=vec3(1)*pow(max(0.,dot(n,normalize(l-rd))),128.);
-                col+=mask*(diff+spec*0.6)*exp(-t*0.05);
-                mask*=vec3(.6);
-                ro=p+n*0.0005;
-                rd=reflect(rd,n);
-                break;
-            }
-            t+=max(d*0.01,0.0003);
-            if(t>60.) break;
-        }
+    vec3 col=vec3(0);
+    for(int i=0;i<STEPS;i++){
+        vec3 p=ro+rd*float(i)*.005;
+        float d=map(p);
+        if(d<.001){col=vec3(1);break;}
     }
     return col;
 }
-
 void main(){
-    vec2 uv=(gl_FragCoord.xy*2.-R.xy)/min(R.x,R.y);
+    vec2 uv=(gl_FragCoord.xy*2.-vec2(1920,1080))/1080.;
+    vec3 ro=vec3(0,0,-4);
+    vec3 rd=normalize(vec3(uv,1));
     vec3 col=vec3(0);
-    /* 32×32 SSAA = 1024 samples */
-    for(int sx=0;sx<32;sx++)
-    for(int sy=0;sy<32;sy++){
-        vec2 off=(vec2(float(sx),float(sy))-15.5)/32.;
-        vec2 suv=uv+off/R.yy;
-        float tm=T*0.02;
-        vec3 ro=vec3(cos(tm*2.2)*8.,sin(tm*1.6)*4.,-12.+cos(tm*1.1)*5.);
-        vec3 ta=vec3(0);
-        vec3 cf=normalize(ta-ro);
-        vec3 cp=vec3(0,1,0);
-        vec3 cu=normalize(cross(cp,cf));
-        vec3 cv=cross(cf,cu);
-        vec3 rd=normalize(suv.x*cu+suv.y*cv+cf*1.7);
-        col+=render(ro,rd);
+    for(int sx=0;sx<16;sx++)
+    for(int sy=0;sy<16;sy++){
+        vec2 off=(vec2(sx-7.5)/16.)/1080.;
+        col+=render(ro,normalize(vec3(uv+off,1)));
     }
-    col*=1./1024.;
-    col=col/(1.+col);
+    col/=256.;
     O=vec4(col,1);
 }`;
-/* ---------- Boiler-plate ---------- */
+
+const prog=gl.createProgram();
 function compile(type,src){
   const s=gl.createShader(type);
   gl.shaderSource(s,src);
   gl.compileShader(s);
-  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){
+    info.textContent='Shader compile error:\n'+gl.getShaderInfoLog(s);
+    throw 0;
+  }
   return s;
 }
-const prog=gl.createProgram();
-gl.attachShader(prog,compile(gl.VERTEX_SHADER,vs));
-gl.attachShader(prog,compile(gl.FRAGMENT_SHADER,fs));
-gl.linkProgram(prog);
-gl.useProgram(prog);
+try{
+  gl.attachShader(prog,compile(gl.VERTEX_SHADER,vs));
+  gl.attachShader(prog,compile(gl.FRAGMENT_SHADER,fs));
+  gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){
+    info.textContent='Link error:\n'+gl.getProgramInfoLog(prog);
+    throw 0;
+  }
+}catch(e){}
 
+gl.useProgram(prog);
 const buf=gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER,buf);
 gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
 const locP=gl.getAttribLocation(prog,'p');
 gl.enableVertexAttribArray(locP);
 gl.vertexAttribPointer(locP,2,gl.FLOAT,false,0,0);
-const locR=gl.getUniformLocation(prog,'R');
 const locT=gl.getUniformLocation(prog,'T');
 
-/* ---------- Render loop ---------- */
+let frame=0,lastT=0;
 function draw(t){
   frame++;
-  if(t-lastT>1000){fps=frame*1000/(t-lastT);frame=0;lastT=t;
-    info.textContent=`FPS: ${fps.toFixed(3)}  |  Time: ${(t*1e-3).toFixed(1)} s`;
+  if(t-lastT>1000){
+    info.textContent=`FPS: ${(frame/(t-lastT)*1000).toFixed(3)}`;
+    frame=0;lastT=t;
   }
-  gl.uniform2f(locR,c.width,c.height);
   gl.uniform1f(locT,t*1e-3);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   requestAnimationFrame(draw);
