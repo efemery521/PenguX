@@ -3,80 +3,83 @@
 <head>
   <meta charset="utf-8">
   <title>Nyqr.os – µLoad</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-  background:#000;
-  color:#0f9;
-  font-family:ui-monospace,monospace;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  padding:10px;
-  height:100vh;
-  overflow:hidden;
-}
-#c{
-  width:100%;
-  max-width:800px;
-  border:1px solid #222;
-  border-radius:4px;
-  padding:8px;
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-bottom:8px
-}
-#c input, #c select{
-  background:#111;
-  border:1px solid #222;
-  border-radius:3px;
-  padding:4px 6px;
-  color:#0f9;
-  font-size:12px
-}
-#u{flex:1;min-width:150px}
-#c button{cursor:pointer}
-#f{
--  width:100%;
--  max-width:400px;
--  display:grid;
--  grid-template-columns:repeat(auto-fill,160px);
--  gap:4px
-+  display:flex;
-+  flex-wrap:wrap;
-+  justify-content:center;
-+  gap:8px;
-+  width:100%;
-+  height:100%;
-+  overflow:auto;
-}
-.b{
--  width:160px;
--  height:90px;
-+  flex: 1 0 30%;
-+  max-width:320px;
-+  aspect-ratio:16/9;
-  border:1px solid #222;
-  border-radius:3px;
-  overflow:hidden;
-  background:#111;
-  position:relative;
-  min-width:200px;
-}
-iframe{
--  width:320px;
--  height:180px;
--  transform:scale(.5);
--  transform-origin:0 0;
-+  width:100%;
-+  height:100%;
-  border:0;
-  image-rendering:pixelated;
-  filter:contrast(.6) brightness(.9)
-}
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box }
+    body {
+      background: #000;
+      color: #0f9;
+      font-family: ui-monospace, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #c {
+      width: 100%;
+      max-width: 900px;
+      border: 1px solid #222;
+      border-radius: 4px;
+      padding: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+      justify-content: center;
+    }
+    #c input, #c select, #c button {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 3px;
+      padding: 4px 6px;
+      color: #0f9;
+      font-size: 12px;
+    }
+    #u { flex: 1; min-width: 200px }
+    #n, #t { width: 50px }
+    #f {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-content: flex-start;
+      gap: 8px;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 4px;
+    }
+    .b {
+      flex: 1 0 30%;
+      max-width: 320px;
+      aspect-ratio: 16 / 9;
+      border: 1px solid #222;
+      border-radius: 3px;
+      overflow: hidden;
+      background: #111;
+      position: relative;
+      min-width: 220px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      image-rendering: pixelated;
+      filter: contrast(.6) brightness(.9);
+    }
+    .d {
+      position: absolute;
+      top: 2px;
+      right: 3px;
+      background: #000a;
+      color: #0f9;
+      font-size: 10px;
+      padding: 1px 3px;
+      border-radius: 2px;
+    }
+  </style>
 </head>
 <body>
 
@@ -89,21 +92,21 @@ iframe{
     <option value="raw">Diğer</option>
   </select>
   <input id="u" type="url" placeholder="https://..." required>
-  <input id="n" type="number" min="1" max="99" value="6" style="width:45px">
-  <input id="t" type="number" min="1" max="600" value="8" style="width:45px">
+  <input id="n" type="number" min="1" max="99" value="6">
+  <input id="t" type="number" min="1" max="600" value="8">
   <button onclick="s()">Go</button>
 </div>
 
 <div id="f"></div>
 
 <script>
-function s(){
+function s() {
   const pform = platform.value;
   const rawUrl = u.value.trim();
   const count = +n.value;
   const time = +t.value;
 
-  if(!rawUrl) return;
+  if (!rawUrl) return;
 
   const container = document.getElementById('f');
   container.innerHTML = '';
@@ -113,30 +116,27 @@ function s(){
   try {
     const url = new URL(rawUrl);
 
-    if(pform === "youtube"){
+    if (pform === "youtube") {
       const vid = url.searchParams.get("v") || url.pathname.split("/").pop();
       embedUrl = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&controls=1`;
-    }
-    else if(pform === "kick"){
+    } else if (pform === "kick") {
       const ch = url.pathname.split("/").filter(Boolean).pop();
       embedUrl = `https://kick.com/embed/${ch}`;
-    }
-    else if(pform === "spotify"){
+    } else if (pform === "spotify") {
       const path = url.pathname;
       embedUrl = `https://open.spotify.com/embed${path}`;
-    }
-    else if(pform === "instagram"){
-      embedUrl = `https://www.instagram.com/p/${url.pathname.split("/")[2]}/embed`;
-    }
-    else {
+    } else if (pform === "instagram") {
+      const postId = url.pathname.split("/")[2];
+      embedUrl = `https://www.instagram.com/p/${postId}/embed`;
+    } else {
       embedUrl = rawUrl;
     }
-  } catch(e){
+  } catch (e) {
     alert("Geçersiz URL");
     return;
   }
 
-  for(let i = 0; i < count; i++){
+  for (let i = 0; i < count; i++) {
     const w = document.createElement('div');
     w.className = 'b';
     w.innerHTML = `
@@ -150,7 +150,7 @@ function s(){
   const interval = setInterval(() => {
     r--;
     timers.forEach(e => e.textContent = r);
-    if(r <= 0){
+    if (r <= 0) {
       clearInterval(interval);
       container.innerHTML = '';
     }
