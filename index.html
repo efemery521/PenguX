@@ -34,11 +34,12 @@
       font-size: 12px;
     }
     #u { flex: 1; min-width: 200px }
+    #t { width: 50px }
     #f {
       width: 100%;
       height: calc(100% - 90px);
       display: grid;
-      gap: 6px;
+      gap: 4px;
       padding: 6px;
       place-content: center;
     }
@@ -48,15 +49,15 @@
       border-radius: 3px;
       overflow: hidden;
       position: relative;
-      aspect-ratio: 16 / 9;
-      width: 100%;
+      width: 160px;
+      height: 90px;
     }
     iframe {
       width: 100%;
       height: 100%;
       border: 0;
       image-rendering: pixelated;
-      filter: contrast(.6) brightness(.9);
+      filter: grayscale(1) contrast(0.3) brightness(0.7);
     }
     .d {
       position: absolute;
@@ -80,8 +81,15 @@
     <option value="instagram">Instagram</option>
     <option value="raw">Diğer</option>
   </select>
+
+  <select id="quality">
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
+
   <input id="u" type="url" placeholder="https://..." required>
-  <input id="t" type="number" min="1" max="600" value="8" style="width:50px">
+  <input id="t" type="number" min="1" max="600" value="8">
   <button onclick="s()">Go</button>
 </div>
 
@@ -90,6 +98,7 @@
 <script>
 function s() {
   const platform = document.getElementById("platform").value;
+  const quality = document.getElementById("quality").value;
   const rawUrl = document.getElementById("u").value.trim();
   const duration = +document.getElementById("t").value;
   const container = document.getElementById("f");
@@ -97,14 +106,10 @@ function s() {
 
   if (!rawUrl) return;
 
-  // Hedef: ekranın içine sığacak kadar embed üretmek
-  const screenH = container.clientHeight;
+  const boxW = 160;
+  const boxH = 90;
   const screenW = container.clientWidth;
-
-  // Her iframe 16:9 oranında olacak, kare değil
-  const boxW = 320;
-  const boxH = 180;
-
+  const screenH = container.clientHeight;
   const cols = Math.floor(screenW / boxW);
   const rows = Math.floor(screenH / boxH);
   const count = Math.max(1, cols * rows);
@@ -116,7 +121,10 @@ function s() {
 
     if (platform === "youtube") {
       const vid = url.searchParams.get("v") || url.pathname.split("/").pop();
-      embedUrl = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&controls=1`;
+      let vq = "small";
+      if (quality === "medium") vq = "medium";
+      else if (quality === "high") vq = "hd720";
+      embedUrl = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&controls=0&vq=${vq}`;
     } else if (platform === "kick") {
       const ch = url.pathname.split("/").filter(Boolean).pop();
       embedUrl = `https://kick.com/embed/${ch}`;
@@ -134,7 +142,6 @@ function s() {
     return;
   }
 
-  // grid ayarı
   container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
   for (let i = 0; i < count; i++) {
@@ -142,8 +149,7 @@ function s() {
     box.className = "b";
     box.innerHTML = `
       <iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>
-      <span class="d">${duration}</span>
-    `;
+      <span class="d">${duration}</span>`;
     container.appendChild(box);
   }
 
