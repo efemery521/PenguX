@@ -6,15 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box }
-    body {
+    html, body {
+      height: 100%;
       background: #000;
       color: #0f9;
       font-family: ui-monospace, monospace;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px;
-      height: 100vh;
       overflow: hidden;
     }
     #c {
@@ -26,7 +22,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
-      margin-bottom: 8px;
+      margin: auto;
       justify-content: center;
     }
     #c input, #c select, #c button {
@@ -38,29 +34,22 @@
       font-size: 12px;
     }
     #u { flex: 1; min-width: 200px }
-    #n, #t { width: 50px }
     #f {
-      flex: 1;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-content: flex-start;
-      gap: 8px;
       width: 100%;
-      height: 100%;
-      overflow: auto;
-      padding: 4px;
+      height: calc(100% - 90px);
+      display: grid;
+      gap: 6px;
+      padding: 6px;
+      place-content: center;
     }
     .b {
-      flex: 1 0 30%;
-      max-width: 320px;
-      aspect-ratio: 16 / 9;
+      background: #111;
       border: 1px solid #222;
       border-radius: 3px;
       overflow: hidden;
-      background: #111;
       position: relative;
-      min-width: 220px;
+      aspect-ratio: 16 / 9;
+      width: 100%;
     }
     iframe {
       width: 100%;
@@ -92,8 +81,7 @@
     <option value="raw">Diğer</option>
   </select>
   <input id="u" type="url" placeholder="https://..." required>
-  <input id="n" type="number" min="1" max="99" value="6">
-  <input id="t" type="number" min="1" max="600" value="8">
+  <input id="t" type="number" min="1" max="600" value="8" style="width:50px">
   <button onclick="s()">Go</button>
 </div>
 
@@ -101,51 +89,65 @@
 
 <script>
 function s() {
-  const pform = platform.value;
-  const rawUrl = u.value.trim();
-  const count = +n.value;
-  const time = +t.value;
+  const platform = document.getElementById("platform").value;
+  const rawUrl = document.getElementById("u").value.trim();
+  const duration = +document.getElementById("t").value;
+  const container = document.getElementById("f");
+  container.innerHTML = '';
 
   if (!rawUrl) return;
 
-  const container = document.getElementById('f');
-  container.innerHTML = '';
+  // Hedef: ekranın içine sığacak kadar embed üretmek
+  const screenH = container.clientHeight;
+  const screenW = container.clientWidth;
+
+  // Her iframe 16:9 oranında olacak, kare değil
+  const boxW = 320;
+  const boxH = 180;
+
+  const cols = Math.floor(screenW / boxW);
+  const rows = Math.floor(screenH / boxH);
+  const count = Math.max(1, cols * rows);
 
   let embedUrl = "";
 
   try {
     const url = new URL(rawUrl);
 
-    if (pform === "youtube") {
+    if (platform === "youtube") {
       const vid = url.searchParams.get("v") || url.pathname.split("/").pop();
       embedUrl = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&controls=1`;
-    } else if (pform === "kick") {
+    } else if (platform === "kick") {
       const ch = url.pathname.split("/").filter(Boolean).pop();
       embedUrl = `https://kick.com/embed/${ch}`;
-    } else if (pform === "spotify") {
+    } else if (platform === "spotify") {
       const path = url.pathname;
       embedUrl = `https://open.spotify.com/embed${path}`;
-    } else if (pform === "instagram") {
+    } else if (platform === "instagram") {
       const postId = url.pathname.split("/")[2];
       embedUrl = `https://www.instagram.com/p/${postId}/embed`;
     } else {
       embedUrl = rawUrl;
     }
-  } catch (e) {
+  } catch {
     alert("Geçersiz URL");
     return;
   }
 
+  // grid ayarı
+  container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
   for (let i = 0; i < count; i++) {
-    const w = document.createElement('div');
-    w.className = 'b';
-    w.innerHTML = `
-      <iframe src="${embedUrl}" loading="lazy" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-      <span class="d">${time}</span>`;
-    container.appendChild(w);
+    const box = document.createElement("div");
+    box.className = "b";
+    box.innerHTML = `
+      <iframe src="${embedUrl}" allow="autoplay; encrypted-media" allowfullscreen loading="lazy"></iframe>
+      <span class="d">${duration}</span>
+    `;
+    container.appendChild(box);
   }
 
-  let r = time;
+  let r = duration;
   const timers = container.querySelectorAll('.d');
   const interval = setInterval(() => {
     r--;
