@@ -1,0 +1,2 @@
+print("test")
+log("test")
