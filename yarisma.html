@@ -1,178 +1,2167 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edebiyat Yarışı</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #f2f2f2, #d6e4f0);
-      margin: 0; padding: 0;
-    }
-    h1 { text-align: center; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sandbox Ekonomi Oyunu</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #222;
+            font-family: 'Arial', sans-serif;
+        }
 
-    .game-container {
-      display: flex;
-      flex-direction: row;
-      justify-content: space-around;
-      align-items: flex-start;
-      padding: 20px;
-    }
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: #111;
+        }
 
-    .player {
-      flex: 1;
-      margin: 10px;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            background-color: #333;
+        }
 
-    .question {
-      font-size: 20px;
-      margin-bottom: 15px;
-      text-align: center;
-    }
+        #uiContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
 
-    .option {
-      background: #e0e0e0;
-      padding: 10px;
-      border-radius: 8px;
-      margin: 8px 0;
-      cursor: pointer;
-      transition: background 0.3s;
-      text-align: center;
-    }
-    .option:hover { background: #c1d3fe; }
-    .correct { background: #b2f7b2 !important; }
-    .wrong { background: #f7b2b2 !important; }
+        .ui-element {
+            pointer-events: auto;
+        }
 
-    #scoreDisplay {
-      text-align: center;
-      font-size: 20px;
-      margin-top: 20px;
-    }
-  </style>
+        /* Para birimi gösterimi */
+        #currencyDisplay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            z-index: 10;
+        }
+
+        .currency-item {
+            margin: 5px 0;
+        }
+
+        /* Aksiyon butonları */
+        #actionButtons {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .action-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .action-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Panel stilleri */
+        .ui-panel {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .ui-panel h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #4CAF50;
+        }
+
+        .ui-panel h3 {
+            color: #8BC34A;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Menü stilleri */
+        .game-menu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 500px;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 200;
+        }
+
+        .menu-title {
+            margin-top: 0;
+            color: #4CAF50;
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .menu-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .menu-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Shop item stilleri */
+        .shop-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        /* PvP item stilleri */
+        .pvp-match-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        /* Bahis dünyası stilleri */
+        .betting-world-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        /* Form stilleri */
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        /* Bildirimler */
+        .notification {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 150;
+            animation: fadeInOut 3s forwards;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            20% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+        }
+
+        /* Envanter grid */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+
+        .inventory-slot {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .inventory-slot:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .item-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 3px;
+        }
+
+        .item-count {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+
+        .item-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .inventory-slot:hover .item-tooltip {
+            opacity: 1;
+        }
+
+        /* Tutorial */
+        #tutorial {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+
+        #tutorial h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        #tutorial p {
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        #tutorial button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Oyun başlığı */
+        #gameTitle {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #4CAF50;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 5;
+        }
+
+        /* Loading ekranı */
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 400;
+        }
+
+        #loadingScreen h1 {
+            color: #4CAF50;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .loading-progress {
+            height: 100%;
+            background-color: #4CAF50;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
 </head>
 <body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        <div id="uiContainer"></div>
+        <div id="gameTitle">SANDBOX EKONOMİ OYUNU</div>
+    </div>
 
-<h1>Edebiyat Yarışı</h1>
-<div id="scoreDisplay">P1: 0 | P2: 0</div>
+    <!-- Loading ekranı -->
+    <div id="loadingScreen">
+        <h1>Yükleniyor...</h1>
+        <div class="loading-bar">
+            <div class="loading-progress" id="loadingProgress"></div>
+        </div>
+    </div>
 
-<div class="game-container">
-  <div class="player" id="player1"></div>
-  <div class="player" id="player2"></div>
-</div>
+    <script>
+        // Canvas ayarları
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            console.log("Canvas boyutu ayarlandı:", canvas.width, "x", canvas.height);
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-<script>
-const questions = [
-  {
-    question: "İlk edebi romanımız hangisidir?",
-    options: ["İntibah", "Araba Sevdası", "Taaşşuk-ı Talat ve Fitnat", "Sergüzeşt"],
-    answer: "İntibah"
-  },
-  {
-    question: "İlk çeviri romanımız hangisidir?",
-    options: ["Telemak", "Sefiller", "Vadideki Zambak", "Çalıkuşu"],
-    answer: "Telemak"
-  },
-  {
-    question: "İlk realist romanımız hangisidir?",
-    options: ["Araba Sevdası", "Zehra", "İntibah", "Felatun Bey ile Rakım Efendi"],
-    answer: "Araba Sevdası"
-  },
-  {
-    question: "İlk gezi yazısı örneği nedir?",
-    options: ["Seyahatname", "Muhayyelat", "Cihannüma", "Miratül-Memalik"],
-    answer: "Miratül-Memalik"
-  },
-  {
-    question: "İlk batılı anlamda hikaye örneği nedir?",
-    options: ["Küçük Şeyler", "Letâif-i Rivayat", "Durub-ı Emsal", "Vatan Yahut Silistre"],
-    answer: "Küçük Şeyler"
-  },
-  {
-    question: "İlk günlük örneğimiz hangisidir?",
-    options: ["Seyahat Jurnali", "Sergüzeşt", "Mai ve Siyah", "Hayat-ı Muhayyel"],
-    answer: "Seyahat Jurnali"
-  },
-  {
-    question: "İlk polisiye romanımız hangisidir?",
-    options: ["Esrar-ı Cinayet", "Cezmi", "Felatun Bey ile Rakım Efendi", "Zehra"],
-    answer: "Esrar-ı Cinayet"
-  },
-  {
-    question: "Hikaye türünün temel öğesi nedir?",
-    options: ["Olay", "Karakter", "Zaman", "Yer"],
-    answer: "Olay"
-  },
-  {
-    question: "Edebiyatın amacı nedir?",
-    options: ["Estetik zevk vermek", "Bilgi vermek", "Sadece eğlendirmek", "Sosyal mesaj vermek"],
-    answer: "Estetik zevk vermek"
-  }
-];
+        // Oyun durumu
+        const game = {
+            player: null,
+            currentWorld: null,
+            worlds: {},
+            ui: {
+                inventory: false,
+                shop: false,
+                trade: false,
+                pvp: false,
+                betting: false
+            },
+            economy: null,
+            pvpSystem: null,
+            bettingSystem: null,
+            tradeSystem: null,
+            menuSystem: null,
+            tutorialShown: false,
+            initialized: false
+        };
 
-let currentIndex = 0;
-let score1 = 0;
-let score2 = 0;
-let lock = false;
+        // Tohum türleri
+        const Seeds = {
+            BASIC_TREE: {
+                name: 'Basic Tree',
+                baseReward: 1,
+                pDropRate: 0.7,
+                seedDropRate: 0.3,
+                growthTime: 30000, // 30 saniye
+                color: '#4CAF50'
+            },
+            GOLDEN_TREE: {
+                name: 'Golden Tree',
+                baseReward: 5,
+                pDropRate: 0.9,
+                seedDropRate: 0.2,
+                growthTime: 60000, // 60 saniye
+                color: '#FFD700'
+            },
+            DIAMOND_TREE: {
+                name: 'Diamond Tree',
+                baseReward: 20,
+                pDropRate: 0.95,
+                seedDropRate: 0.1,
+                growthTime: 120000, // 120 saniye
+                color: '#00BFFF'
+            }
+        };
 
-function shuffle(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
+        // Blok türleri ve renkleri
+        const BlockTypes = {
+            grass: { name: 'Çimen', color: '#4CAF50' },
+            dirt: { name: 'Toprak', color: '#795548' },
+            wood: { name: 'Odun', color: '#8D6E63' },
+            stone: { name: 'Taş', color: '#9E9E9E' }
+        };
 
-function loadQuestion() {
-  if (currentIndex >= questions.length) {
-    document.getElementById("player1").innerHTML = "<h2>Oyun Bitti!</h2>";
-    document.getElementById("player2").innerHTML = "<h2>Oyun Bitti!</h2>";
-    return;
-  }
+        // Bildirim gösterme fonksiyonu
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.getElementById('uiContainer').appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
 
-  lock = false;
+        // Ekonomi Sınıfı
+        class Economy {
+            constructor() {
+                this.exchangeRates = {
+                    P_TO_WK: 1000, // 1000 P = 1 WK
+                    WK_TO_DK: 100,  // 100 WK = 1 DK
+                    DK_TO_BGK: 100  // 100 DK = 1 BGK
+                };
+                
+                this.commissionRates = {
+                    PVP: 0.05, // %5 komisyon PvP stake'lerinde
+                    BETTING: 0.1, // %10 komisyon bahislerde
+                    TRADE: 0.02 // %2 komisyon takaslarda
+                };
+                
+                this.shopItems = {
+                    WK: {
+                        price: 1000,
+                        currency: 'P'
+                    },
+                    DK: {
+                        price: 100,
+                        currency: 'WK'
+                    },
+                    BGK: {
+                        price: 100,
+                        currency: 'DK'
+                    }
+                };
+            }
+            
+            exchange(amount, fromCurrency, toCurrency) {
+                // P'den WK'ye dönüştür
+                if (fromCurrency === 'P' && toCurrency === 'WK') {
+                    return Math.floor(amount / this.exchangeRates.P_TO_WK);
+                }
+                // WK'den P'ye dönüştür
+                else if (fromCurrency === 'WK' && toCurrency === 'P') {
+                    return amount * this.exchangeRates.P_TO_WK;
+                }
+                // WK'den DK'ye dönüştür
+                else if (fromCurrency === 'WK' && toCurrency === 'DK') {
+                    return Math.floor(amount / this.exchangeRates.WK_TO_DK);
+                }
+                // DK'den WK'ye dönüştür
+                else if (fromCurrency === 'DK' && toCurrency === 'WK') {
+                    return amount * this.exchangeRates.WK_TO_DK;
+                }
+                // DK'den BGK'ye dönüştür
+                else if (fromCurrency === 'DK' && toCurrency === 'BGK') {
+                    return Math.floor(amount / this.exchangeRates.DK_TO_BGK);
+                }
+                // BGK'den DK'ye dönüştür
+                else if (fromCurrency === 'BGK' && toCurrency === 'DK') {
+                    return amount * this.exchangeRates.DK_TO_BGK;
+                }
+                // P'den DK'ye dönüştür
+                else if (fromCurrency === 'P' && toCurrency === 'DK') {
+                    const wk = this.exchange(amount, 'P', 'WK');
+                    return this.exchange(wk, 'WK', 'DK');
+                }
+                // DK'den P'ye dönüştür
+                else if (fromCurrency === 'DK' && toCurrency === 'P') {
+                    const wk = this.exchange(amount, 'DK', 'WK');
+                    return this.exchange(wk, 'WK', 'P');
+                }
+                // P'den BGK'ye dönüştür
+                else if (fromCurrency === 'P' && toCurrency === 'BGK') {
+                    const dk = this.exchange(amount, 'P', 'DK');
+                    return this.exchange(dk, 'DK', 'BGK');
+                }
+                // BGK'den P'ye dönüştür
+                else if (fromCurrency === 'BGK' && toCurrency === 'P') {
+                    const dk = this.exchange(amount, 'BGK', 'DK');
+                    return this.exchange(dk, 'DK', 'P');
+                }
+                
+                return 0; // Geçersiz dönüşüm
+            }
+            
+            calculateCommission(amount, type) {
+                if (this.commissionRates[type]) {
+                    return amount * this.commissionRates[type];
+                }
+                return 0;
+            }
+            
+            buyItem(itemType, player) {
+                if (this.shopItems[itemType]) {
+                    const item = this.shopItems[itemType];
+                    if (player.inventory.hasItem('currencies', item.currency, item.price)) {
+                        player.inventory.removeItem('currencies', item.currency, item.price);
+                        player.inventory.addItem('currencies', itemType, 1);
+                        return true;
+                    }
+                }
+                return false;
+            }
+        }
 
-  const q = questions[currentIndex];
-  const options = [...q.options];
-  shuffle(options);
+        // PvP Sistemi Sınıfı
+        class PvPSystem {
+            constructor(economy) {
+                this.economy = economy;
+                this.matches = [];
+                this.minStake = {
+                    WK: 5,
+                    DK: 0,
+                    BGK: 0
+                };
+                this.maxStake = {
+                    WK: 10000,
+                    DK: 100,
+                    BGK: 1
+                };
+            }
+            
+            createMatch(player1, player2, stakes) {
+                // Stake'leri doğrula
+                for (const currency in stakes) {
+                    if (stakes[currency] < this.minStake[currency] || stakes[currency] > this.maxStake[currency]) {
+                        return null; // Geçersiz stake miktarı
+                    }
+                }
+                
+                // Oyuncuların yeterli paraya sahip olup olmadığını kontrol et
+                for (const currency in stakes) {
+                    if (!player1.inventory.hasItem('currencies', currency, stakes[currency]) ||
+                        !player2.inventory.hasItem('currencies', currency, stakes[currency])) {
+                        return null; // Yeterli para yok
+                    }
+                }
+                
+                // Stake'leri oyunculardan al
+                for (const currency in stakes) {
+                    player1.inventory.removeItem('currencies', currency, stakes[currency]);
+                    player2.inventory.removeItem('currencies', currency, stakes[currency]);
+                }
+                
+                // Maç oluştur
+                const match = {
+                    id: this.generateMatchId(),
+                    player1: player1,
+                    player2: player2,
+                    stakes: stakes,
+                    totalStakes: this.calculateTotalStakes(stakes),
+                    winner: null,
+                    status: 'waiting' // waiting, active, finished
+                };
+                
+                this.matches.push(match);
+                return match;
+            }
+            
+            startMatch(matchId) {
+                const match = this.matches.find(m => m.id === matchId);
+                if (match && match.status === 'waiting') {
+                    match.status = 'active';
+                    return true;
+                }
+                return false;
+            }
+            
+            endMatch(matchId, winnerId) {
+                const match = this.matches.find(m => m.id === matchId);
+                if (match && match.status === 'active') {
+                    // Kazananı belirle
+                    match.winner = winnerId === match.player1.id ? match.player1 : match.player2;
+                    match.status = 'finished';
+                    
+                    // Komisyonu hesapla
+                    const commission = this.economy.calculateCommission(match.totalStakes, 'PVP');
+                    const winnings = match.totalStakes - commission;
+                    
+                    // Kazanana ödülü ver
+                    for (const currency in match.stakes) {
+                        const amount = match.stakes[currency] * 2; // Her iki oyuncu da aynı miktarda stake etti
+                        const playerAmount = this.economy.exchange(amount * (winnings / match.totalStakes), currency, currency);
+                        match.winner.inventory.addItem('currencies', currency, playerAmount);
+                    }
+                    
+                    return true;
+                }
+                return false;
+            }
+            
+            calculateTotalStakes(stakes) {
+                let total = 0;
+                
+                for (const currency in stakes) {
+                    let amountInP;
+                    
+                    if (currency === 'P') {
+                        amountInP = stakes[currency];
+                    } else {
+                        amountInP = this.economy.exchange(stakes[currency], currency, 'P');
+                    }
+                    
+                    total += amountInP;
+                }
+                
+                return total;
+            }
+            
+            generateMatchId() {
+                return 'match_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            getActiveMatches() {
+                return this.matches.filter(m => m.status === 'active');
+            }
+        }
 
-  const html = `
-    <div class="question">${q.question}</div>
-    ${options.map(opt => `<div class="option" onclick="answerQuestion(this, '${opt}')">${opt}</div>`).join('')}
-  `;
+        // Bahis Sistemi Sınıfı
+        class BettingSystem {
+            constructor(economy) {
+                this.economy = economy;
+                this.bettingWorlds = [];
+                this.hosters = [];
+                this.hosterFee = {
+                    DK: 50,
+                    deposit: 15
+                };
+            }
+            
+            createBettingWorld(hoster) {
+                // Hoster'ın yeterli DK'ya sahip olup olmadığını kontrol et
+                if (!hoster.inventory.hasItem('currencies', 'DK', this.hosterFee.DK + this.hosterFee.deposit)) {
+                    return null;
+                }
+                
+                // Hoster'dan ücreti al
+                hoster.inventory.removeItem('currencies', 'DK', this.hosterFee.DK + this.hosterFee.deposit);
+                
+                // Bahis dünyası oluştur
+                const bettingWorld = {
+                    id: this.generateWorldId(),
+                    name: `${hoster.name}'s Betting World`,
+                    hoster: hoster,
+                    matches: [],
+                    bets: [],
+                    status: 'active' // active, closed
+                };
+                
+                this.bettingWorlds.push(bettingWorld);
+                this.hosters.push({
+                    id: hoster.id,
+                    name: hoster.name,
+                    worldId: bettingWorld.id,
+                    deposit: this.hosterFee.deposit
+                });
+                
+                return bettingWorld;
+            }
+            
+            placeBet(worldId, matchId, player, currency, amount, betOnPlayerId) {
+                const world = this.bettingWorlds.find(w => w.id === worldId);
+                if (!world || world.status !== 'active') {
+                    return false;
+                }
+                
+                const match = world.matches.find(m => m.id === matchId);
+                if (!match || match.status !== 'active') {
+                    return false;
+                }
+                
+                // Oyuncunun yeterli paraya sahip olup olmadığını kontrol et
+                if (!player.inventory.hasItem('currencies', currency, amount)) {
+                    return false;
+                }
+                
+                // Bahis miktarını oyuncudan al
+                player.inventory.removeItem('currencies', currency, amount);
+                
+                // Bahis oluştur
+                const bet = {
+                    id: this.generateBetId(),
+                    playerId: player.id,
+                    playerName: player.name,
+                    matchId: matchId,
+                    currency: currency,
+                    amount: amount,
+                    betOnPlayerId: betOnPlayerId,
+                    status: 'active' // active, won, lost
+                };
+                
+                world.bets.push(bet);
+                return bet;
+            }
+            
+            generateWorldId() {
+                return 'betting_world_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            generateBetId() {
+                return 'bet_' + Math.random().toString(36).substr(2, 9);
+            }
+        }
 
-  document.getElementById("player1").innerHTML = html;
-  document.getElementById("player2").innerHTML = html;
-}
+        // Takas Sistemi Sınıfı
+        class TradeSystem {
+            constructor(economy) {
+                this.economy = economy;
+                this.trades = [];
+            }
+            
+            initiateTrade(player1, player2) {
+                const trade = {
+                    id: this.generateTradeId(),
+                    player1: player1,
+                    player2: player2,
+                    player1Offer: {
+                        blocks: {},
+                        seeds: {},
+                        currencies: {
+                            WK: 0,
+                            DK: 0,
+                            BGK: 0
+                        }
+                    },
+                    player2Offer: {
+                        blocks: {},
+                        seeds: {},
+                        currencies: {
+                            WK: 0,
+                            DK: 0,
+                            BGK: 0
+                        }
+                    },
+                    player1Accepted: false,
+                    player2Accepted: false,
+                    status: 'active' // active, completed, cancelled
+                };
+                
+                this.trades.push(trade);
+                return trade;
+            }
+            
+            generateTradeId() {
+                return 'trade_' + Math.random().toString(36).substr(2, 9);
+            }
+        }
 
-function answerQuestion(element, selected) {
-  if (lock) return;
+        // Envanter Sınıfı
+        class Inventory {
+            constructor() {
+                this.items = {
+                    blocks: {},
+                    seeds: {},
+                    currencies: {
+                        P: 0,
+                        WK: 0,
+                        DK: 0,
+                        BGK: 0
+                    }
+                };
+                this.maxSlots = 40;
+            }
+            
+            addItem(type, subtype, amount) {
+                if (type === 'blocks' || type === 'seeds') {
+                    if (!this.items[type][subtype]) {
+                        this.items[type][subtype] = 0;
+                    }
+                    this.items[type][subtype] += amount;
+                } else if (type === 'currencies') {
+                    this.items.currencies[subtype] += amount;
+                }
+                return true;
+            }
+            
+            removeItem(type, subtype, amount) {
+                if (type === 'blocks' || type === 'seeds') {
+                    if (this.items[type][subtype] >= amount) {
+                        this.items[type][subtype] -= amount;
+                        return true;
+                    }
+                } else if (type === 'currencies') {
+                    if (this.items.currencies[subtype] >= amount) {
+                        this.items.currencies[subtype] -= amount;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            hasItem(type, subtype, amount) {
+                if (type === 'blocks' || type === 'seeds') {
+                    return this.items[type][subtype] >= amount;
+                } else if (type === 'currencies') {
+                    return this.items.currencies[subtype] >= amount;
+                }
+                return false;
+            }
+        }
 
-  const isCorrect = selected === questions[currentIndex].answer;
-  element.classList.add(isCorrect ? 'correct' : 'wrong');
+        // Karo Sınıfı
+        class Tile {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.size = 32;
+                this.growthStage = 0;
+                this.maxGrowthStage = 3;
+                this.isPlanted = false;
+                this.seedType = null;
+                this.lastGrowthTime = Date.now();
+            }
+            
+            plant(seedType) {
+                if (this.type === 'grass' && !this.isPlanted) {
+                    this.isPlanted = true;
+                    this.seedType = seedType;
+                    this.growthStage = 0;
+                    this.lastGrowthTime = Date.now();
+                    return true;
+                }
+                return false;
+            }
+            
+            grow() {
+                if (this.isPlanted && this.growthStage < this.maxGrowthStage) {
+                    const now = Date.now();
+                    const growthTime = Seeds[this.seedType].growthTime / this.maxGrowthStage;
+                    
+                    if (now - this.lastGrowthTime >= growthTime) {
+                        this.growthStage++;
+                        this.lastGrowthTime = now;
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            harvest() {
+                if (this.isPlanted && this.growthStage >= this.maxGrowthStage) {
+                    const rewards = this.calculateRewards();
+                    this.isPlanted = false;
+                    this.seedType = null;
+                    this.growthStage = 0;
+                    return rewards;
+                }
+                return null;
+            }
+            
+            calculateRewards() {
+                // Tohum türüne göre ödülleri hesapla
+                const baseReward = Seeds[this.seedType].baseReward;
+                const pDropRate = Seeds[this.seedType].pDropRate;
+                const seedDropRate = Seeds[this.seedType].seedDropRate;
+                
+                const rewards = {
+                    blocks: Math.floor(Math.random() * 5) + 3, // 3-7 blok
+                    P: 0,
+                    seeds: []
+                };
+                
+                // P ödülünü hesapla
+                for (let i = 0; i < rewards.blocks; i++) {
+                    if (Math.random() < pDropRate) {
+                        rewards.P += baseReward;
+                    }
+                }
+                
+                // Tohum ödülünü hesapla
+                if (Math.random() < seedDropRate) {
+                    rewards.seeds.push(this.seedType);
+                }
+                
+                return rewards;
+            }
+            
+            break() {
+                if (this.type !== 'air') {
+                    const rewards = {
+                        blocks: 1,
+                        P: 0,
+                        seeds: []
+                    };
+                    
+                    // Karo türüne göre P ödülü
+                    if (this.type === 'grass') {
+                        rewards.P = 1;
+                    } else if (this.type === 'dirt') {
+                        rewards.P = 2;
+                    } else if (this.type === 'stone') {
+                        rewards.P = 3;
+                    }
+                    
+                    // Hava karosuna dönüştür
+                    this.type = 'air';
+                    
+                    return rewards;
+                }
+                return null;
+            }
+            
+            render() {
+                const x = this.x * this.size;
+                const y = this.y * this.size;
+                
+                // Karo türüne göre çiz
+                switch (this.type) {
+                    case 'grass':
+                        ctx.fillStyle = BlockTypes.grass.color;
+                        ctx.fillRect(x, y, this.size, this.size);
+                        break;
+                    case 'dirt':
+                        ctx.fillStyle = BlockTypes.dirt.color;
+                        ctx.fillRect(x, y, this.size, this.size);
+                        break;
+                    case 'stone':
+                        ctx.fillStyle = BlockTypes.stone.color;
+                        ctx.fillRect(x, y, this.size, this.size);
+                        break;
+                    case 'air':
+                        // Hava karolarını çizme
+                        break;
+                }
+                
+                // Ekilmişse bitkiyi çiz
+                if (this.isPlanted) {
+                    ctx.fillStyle = Seeds[this.seedType].color;
+                    const plantSize = this.size * 0.8;
+                    const plantOffset = (this.size - plantSize) / 2;
+                    const plantHeight = (plantSize / this.maxGrowthStage) * this.growthStage;
+                    
+                    ctx.fillRect(
+                        x + plantOffset,
+                        y + this.size - plantHeight,
+                        plantSize,
+                        plantHeight
+                    );
+                }
+            }
+        }
 
-  lock = true;
-  if (element.closest('#player1')) score1++;
-  else if (element.closest('#player2')) score2++;
+        // Dünya Sınıfı
+        class World {
+            constructor(id, name, ownerId) {
+                this.id = id;
+                this.name = name;
+                this.ownerId = ownerId;
+                this.tiles = [];
+                this.entities = [];
+                this.players = [];
+                this.isPvpAllowed = false;
+                this.isBettingAllowed = false;
+            }
+            
+            generate() {
+                // Dünya karolarını oluştur
+                const tileSize = 32;
+                const worldWidth = Math.ceil(canvas.width / tileSize);
+                const worldHeight = Math.ceil(canvas.height / tileSize);
+                
+                for (let y = 0; y < worldHeight; y++) {
+                    this.tiles[y] = [];
+                    for (let x = 0; x < worldWidth; x++) {
+                        // Zemin karoları
+                        if (y === worldHeight - 2) {
+                            this.tiles[y][x] = new Tile(x, y, 'grass');
+                        } else if (y >= worldHeight - 1) {
+                            this.tiles[y][x] = new Tile(x, y, 'dirt');
+                        } else {
+                            // Rastgele taş blokları ekle
+                            if (y > worldHeight - 10 && Math.random() < 0.1) {
+                                this.tiles[y][x] = new Tile(x, y, 'stone');
+                            } else {
+                                this.tiles[y][x] = new Tile(x, y, 'air');
+                            }
+                        }
+                    }
+                }
+            }
+            
+            addPlayer(player) {
+                this.players.push(player);
+                player.world = this;
+            }
+            
+            removePlayer(playerId) {
+                this.players = this.players.filter(p => p.id !== playerId);
+                if (game.player && game.player.id === playerId) {
+                    game.player.world = null;
+                }
+            }
+            
+            update() {
+                // Tüm karoları güncelle
+                this.tiles.forEach(row => {
+                    row.forEach(tile => tile.grow());
+                });
+                
+                // Dünyadaki tüm varlıkları güncelle
+                this.entities.forEach(entity => entity.update());
+                
+                // Dünyadaki tüm oyuncuları güncelle
+                this.players.forEach(player => player.update());
+            }
+            
+            render() {
+                // Tüm karoları çiz
+                this.tiles.forEach(row => {
+                    row.forEach(tile => tile.render());
+                });
+                
+                // Tüm varlıkları çiz
+                this.entities.forEach(entity => entity.render());
+                
+                // Tüm oyuncuları çiz
+                this.players.forEach(player => player.render());
+            }
+            
+            getTileAt(x, y) {
+                const tileSize = 32;
+                const tileX = Math.floor(x / tileSize);
+                const tileY = Math.floor(y / tileSize);
+                
+                if (tileY >= 0 && tileY < this.tiles.length && 
+                    tileX >= 0 && tileX < this.tiles[tileY].length) {
+                    return this.tiles[tileY][tileX];
+                }
+                
+                return null;
+            }
+        }
 
-  updateScore();
-  setTimeout(() => {
-    currentIndex++;
-    loadQuestion();
-  }, 1000);
-}
+        // Oyuncu Sınıfı
+        class Player {
+            constructor(id, name, x, y) {
+                this.id = id;
+                this.name = name;
+                this.x = x;
+                this.y = y;
+                this.width = 32;
+                this.height = 48;
+                this.velocityX = 0;
+                this.velocityY = 0;
+                this.speed = 5;
+                this.jumpPower = 12;
+                this.isGrounded = false;
+                this.inventory = new Inventory();
+                this.world = null;
+            }
+            
+            update() {
+                // Yerçekimi uygula
+                if (!this.isGrounded) {
+                    this.velocityY += 0.5;
+                }
+                
+                // Yeni pozisyonu hesapla
+                const newX = this.x + this.velocityX;
+                const newY = this.y + this.velocityY;
+                
+                // Çarpışma kontrolü
+                this.checkCollisions(newX, newY);
+                
+                // Yatay hareketi yavaşlat
+                this.velocityX *= 0.8;
+            }
+            
+            checkCollisions(newX, newY) {
+                // Yatay çarpışma kontrolü
+                let canMoveX = true;
+                const leftX = newX;
+                const rightX = newX + this.width;
+                const topY = this.y;
+                const bottomY = this.y + this.height;
+                
+                // Sol ve sağ kenarlar için çarpışma kontrolü
+                for (let checkY = topY; checkY < bottomY; checkY += 8) {
+                    const leftTile = this.world.getTileAt(leftX, checkY);
+                    const rightTile = this.world.getTileAt(rightX, checkY);
+                    
+                    if ((leftTile && leftTile.type !== 'air') || 
+                        (rightTile && rightTile.type !== 'air')) {
+                        canMoveX = false;
+                        break;
+                    }
+                }
+                
+                if (canMoveX) {
+                    this.x = newX;
+                } else {
+                    this.velocityX = 0;
+                }
+                
+                // Dikey çarpışma kontrolü
+                let canMoveY = true;
+                this.isGrounded = false;
+                
+                const leftX = this.x;
+                const rightX = this.x + this.width;
+                const topY = newY;
+                const bottomY = newY + this.height;
+                
+                // Üst ve alt kenarlar için çarpışma kontrolü
+                for (let checkX = leftX; checkX < rightX; checkX += 8) {
+                    const topTile = this.world.getTileAt(checkX, topY);
+                    const bottomTile = this.world.getTileAt(checkX, bottomY);
+                    
+                    if (topTile && topTile.type !== 'air') {
+                        canMoveY = false;
+                        this.velocityY = 0;
+                    }
+                    
+                    if (bottomTile && bottomTile.type !== 'air') {
+                        canMoveY = false;
+                        this.velocityY = 0;
+                        this.isGrounded = true;
+                    }
+                }
+                
+                if (canMoveY) {
+                    this.y = newY;
+                }
+            }
+            
+            render() {
+                // Oyuncuyu çiz
+                ctx.fillStyle = '#FF5733';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Oyuncu adını çiz
+                ctx.fillStyle = '#FFF';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(this.name, this.x + this.width / 2, this.y - 5);
+            }
+            
+            moveLeft() {
+                this.velocityX = -this.speed;
+            }
+            
+            moveRight() {
+                this.velocityX = this.speed;
+            }
+            
+            jump() {
+                if (this.isGrounded) {
+                    this.velocityY = -this.jumpPower;
+                    this.isGrounded = false;
+                }
+            }
+        }
 
-function updateScore() {
-  document.getElementById("scoreDisplay").textContent = `P1: ${score1} | P2: ${score2}`;
-}
+        // Menü Sistemi Sınıfı
+        class MenuSystem {
+            constructor() {
+                this.currentMenu = 'main'; // main, worlds, inventory, shop, settings
+                this.menuElements = {};
+                this.createMenuElements();
+            }
+            
+            createMenuElements() {
+                // Ana menü
+                this.menuElements.main = {
+                    title: 'SANDBOX EKONOMİ OYUNU',
+                    buttons: [
+                        { id: 'play', text: 'Oyna', action: () => this.showMenu('worlds') },
+                        { id: 'inventory', text: 'Envanter', action: () => toggleInventory() },
+                        { id: 'shop', text: 'Dükkan', action: () => toggleShop() },
+                        { id: 'tutorial', text: 'Tutorial', action: () => showTutorial() },
+                        { id: 'settings', text: 'Ayarlar', action: () => this.showMenu('settings') }
+                    ]
+                };
+                
+                // Dünyalar menüsü
+                this.menuElements.worlds = {
+                    title: 'DÜNYALAR',
+                    buttons: [
+                        { id: 'myWorld', text: 'Kendi Dünyam', action: () => this.enterWorld('myWorld') },
+                        { id: 'createWorld', text: 'Yeni Dünya Oluştur', action: () => this.createWorld() },
+                        { id: 'pvpWorlds', text: 'PvP Dünyaları', action: () => this.showMenu('pvpWorlds') },
+                        { id: 'bettingWorlds', text: 'Bahis Dünyaları', action: () => this.showMenu('bettingWorlds') },
+                        { id: 'back', text: 'Geri', action: () => this.showMenu('main') }
+                    ]
+                };
+                
+                // PvP dünyaları menüsü
+                this.menuElements.pvpWorlds = {
+                    title: 'PVP DÜNYALARI',
+                    buttons: [
+                        { id: 'back', text: 'Geri', action: () => this.showMenu('worlds') }
+                    ]
+                };
+                
+                // Bahis dünyaları menüsü
+                this.menuElements.bettingWorlds = {
+                    title: 'BAHİS DÜNYALARI',
+                    buttons: [
+                        { id: 'back', text: 'Geri', action: () => this.showMenu('worlds') }
+                    ]
+                };
+                
+                // Ayarlar menüsü
+                this.menuElements.settings = {
+                    title: 'AYARLAR',
+                    buttons: [
+                        { id: 'sound', text: 'Ses: Açık', action: () => this.toggleSetting('sound') },
+                        { id: 'music', text: 'Müzik: Açık', action: () => this.toggleSetting('music') },
+                        { id: 'back', text: 'Geri', action: () => this.showMenu('main') }
+                    ]
+                };
+            }
+            
+            showMenu(menuName) {
+                this.currentMenu = menuName;
+                this.render();
+            }
+            
+            render() {
+                const menu = this.menuElements[this.currentMenu];
+                if (!menu) return;
+                
+                // Önceki menüyü temizle
+                const existingMenu = document.getElementById('gameMenu');
+                if (existingMenu) {
+                    existingMenu.remove();
+                }
+                
+                // Menü konteynerı oluştur
+                const menuContainer = document.createElement('div');
+                menuContainer.id = 'gameMenu';
+                menuContainer.className = 'game-menu';
+                
+                // Menü başlığı oluştur
+                const titleElement = document.createElement('h1');
+                titleElement.className = 'menu-title';
+                titleElement.textContent = menu.title;
+                menuContainer.appendChild(titleElement);
+                
+                // Menü butonları oluştur
+                const buttonsContainer = document.createElement('div');
+                buttonsContainer.className = 'menu-buttons';
+                
+                menu.buttons.forEach(button => {
+                    const buttonElement = document.createElement('button');
+                    buttonElement.className = 'menu-button';
+                    buttonElement.textContent = button.text;
+                    buttonElement.addEventListener('click', button.action);
+                    buttonsContainer.appendChild(buttonElement);
+                });
+                
+                menuContainer.appendChild(buttonsContainer);
+                
+                // Menüyü DOM'a ekle
+                document.getElementById('uiContainer').appendChild(menuContainer);
+            }
+            
+            enterWorld(worldId) {
+                // Menüyü gizle
+                const menuElement = document.getElementById('gameMenu');
+                if (menuElement) {
+                    menuElement.style.display = 'none';
+                }
+                
+                // Dünyaya giriş mantığı
+                if (worldId === 'myWorld') {
+                    // Oyuncunun kendi dünyasına gir
+                    if (!game.player.world) {
+                        // Dünya yoksa oluştur
+                        const world = new World('myWorld', `${game.player.name}'s World`, game.player.id);
+                        world.generate();
+                        game.worlds['myWorld'] = world;
+                        game.currentWorld = world;
+                        world.addPlayer(game.player);
+                    } else {
+                        game.currentWorld = game.player.world;
+                    }
+                } else {
+                    // Başka bir dünyaya gir
+                    const world = game.worlds[worldId];
+                    if (world) {
+                        game.currentWorld = world;
+                        world.addPlayer(game.player);
+                    }
+                }
+                
+                showNotification(`${game.currentWorld.name} dünyasına giriş yapıldı!`);
+            }
+            
+            createWorld() {
+                // Yeni dünya oluşturma mantığı
+                const worldName = prompt('Dünyanın adı:');
+                if (worldName) {
+                    const worldId = 'world_' + Math.random().toString(36).substr(2, 9);
+                    const world = new World(worldId, worldName, game.player.id);
+                    world.generate();
+                    game.worlds[worldId] = world;
+                    
+                    showNotification(`${worldName} adlı dünya oluşturuldu!`);
+                }
+            }
+            
+            toggleSetting(setting) {
+                // Ayar değiştirme mantığı
+                showNotification(`${setting} ayarı değiştirildi!`);
+            }
+        }
 
-shuffle(questions);
-loadQuestion();
-</script>
+        // Tutorial gösterme fonksiyonu
+        function showTutorial() {
+            const tutorial = document.createElement('div');
+            tutorial.id = 'tutorial';
+            
+            const title = document.createElement('h1');
+            title.textContent = 'Oyun Tutorial';
+            tutorial.appendChild(title);
+            
+            const instructions = document.createElement('p');
+            instructions.innerHTML = `
+                <strong>Kontroller:</strong><br>
+                - Hareket: Sol/Sağ oklar veya A/D<br>
+                - Zıplama: Yukarı ok, W veya Boşluk<br>
+                - Etkileşim: Farenin sol tuşu<br>
+                - Envanter: I<br>
+                - Dükkan: S<br>
+                - PvP: P<br>
+                - Bahis: B<br>
+                - Menü: ESC<br><br>
+                
+                <strong>Oyun Mekanikleri:</strong><br>
+                - Tohumları çim zeminlere ekebilirsiniz<br>
+                - Bitkiler büyüdükten sonra hasat edebilirsiniz<br>
+                - Blokları kırarak P (Penny) kazanın<br>
+                - P'yi WK'ye, WK'yi DK'ye, DK'yi BGK'ye dönüştürebilirsiniz<br>
+                - Sadece kendi dünyanızda tarım yapabilirsiniz<br>
+                - PvP maçları için en az 5 WK stake etmelisiniz<br>
+                - Bahis hosteri olmak için 65 DK gerekir
+            `;
+            tutorial.appendChild(instructions);
+            
+            const closeButton = document.createElement('button');
+            closeButton.textContent = 'Kapat';
+            closeButton.addEventListener('click', () => {
+                tutorial.remove();
+            });
+            tutorial.appendChild(closeButton);
+            
+            document.body.appendChild(tutorial);
+        }
 
+        // Oyun başlatma fonksiyonu
+        function initGame() {
+            console.log("Oyun başlatılıyor...");
+            
+            // Oyun sistemlerini oluştur
+            game.economy = new Economy();
+            game.pvpSystem = new PvPSystem(game.economy);
+            game.bettingSystem = new BettingSystem(game.economy);
+            game.tradeSystem = new TradeSystem(game.economy);
+            game.menuSystem = new MenuSystem();
+            
+            // Para birimi göstergesini oluştur
+            const currencyDisplay = document.createElement('div');
+            currencyDisplay.id = 'currencyDisplay';
+            document.getElementById('uiContainer').appendChild(currencyDisplay);
+            
+            // Aksiyon butonlarını oluştur
+            const actionButtons = document.createElement('div');
+            actionButtons.id = 'actionButtons';
+            
+            const inventoryButton = document.createElement('button');
+            inventoryButton.className = 'action-button';
+            inventoryButton.textContent = 'Envanter (I)';
+            inventoryButton.addEventListener('click', toggleInventory);
+            
+            const shopButton = document.createElement('button');
+            shopButton.className = 'action-button';
+            shopButton.textContent = 'Dükkan (S)';
+            shopButton.addEventListener('click', toggleShop);
+            
+            const pvpButton = document.createElement('button');
+            pvpButton.className = 'action-button';
+            pvpButton.textContent = 'PvP (P)';
+            pvpButton.addEventListener('click', togglePvp);
+            
+            const bettingButton = document.createElement('button');
+            bettingButton.className = 'action-button';
+            bettingButton.textContent = 'Bahis (B)';
+            bettingButton.addEventListener('click', toggleBetting);
+            
+            const menuButton = document.createElement('button');
+            menuButton.className = 'action-button';
+            menuButton.textContent = 'Menü (ESC)';
+            menuButton.addEventListener('click', () => game.menuSystem.showMenu('main'));
+            
+            actionButtons.appendChild(inventoryButton);
+            actionButtons.appendChild(shopButton);
+            actionButtons.appendChild(pvpButton);
+            actionButtons.appendChild(bettingButton);
+            actionButtons.appendChild(menuButton);
+            document.getElementById('uiContainer').appendChild(actionButtons);
+            
+            // Oyuncu oluştur
+            game.player = new Player('player1', 'Player1', canvas.width / 2, canvas.height / 2);
+            
+            // Dünya oluştur
+            const world = new World('world1', 'My World', 'player1');
+            world.generate();
+            game.worlds['world1'] = world;
+            game.currentWorld = world;
+            
+            // Oyuncuyu dünyaya ekle
+            world.addPlayer(game.player);
+            
+            // Oyuncuya başlangıç eşyaları ver
+            game.player.inventory.addItem('seeds', 'BASIC_TREE', 5);
+            game.player.inventory.addItem('seeds', 'GOLDEN_TREE', 2);
+            game.player.inventory.addItem('currencies', 'P', 100);
+            
+            // Kontrolleri ayarla
+            setupControls();
+            
+            // Ana menüyü göster
+            game.menuSystem.showMenu('main');
+            
+            // Oyun döngüsünü başlat
+            gameLoop();
+            
+            // Oyunun başlatıldığını işaretle
+            game.initialized = true;
+            
+            console.log("Oyun başlatıldı!");
+        }
+
+        // Oyun döngüsü
+        function gameLoop() {
+            // Canvas'ı temizle ve arka planı çiz
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Mevcut dünyayı güncelle ve çiz
+            if (game.currentWorld) {
+                game.currentWorld.update();
+                game.currentWorld.render();
+            }
+            
+            // Oyuncuyu çiz
+            if (game.player) {
+                game.player.render();
+            }
+            
+            // UI'yi güncelle
+            updateUI();
+            
+            // Oyun döngüsüne devam et
+            requestAnimationFrame(gameLoop);
+        }
+
+        // UI güncelleme
+        function updateUI() {
+            // Para birimi göstergesini güncelle
+            const currencyDisplay = document.getElementById('currencyDisplay');
+            if (currencyDisplay && game.player) {
+                currencyDisplay.innerHTML = `
+                    <div class="currency-item">P: ${game.player.inventory.items.currencies.P}</div>
+                    <div class="currency-item">WK: ${game.player.inventory.items.currencies.WK}</div>
+                    <div class="currency-item">DK: ${game.player.inventory.items.currencies.DK}</div>
+                    <div class="currency-item">BGK: ${game.player.inventory.items.currencies.BGK}</div>
+                `;
+            }
+        }
+
+        // Klavye kontrolleri
+        function setupControls() {
+            document.addEventListener('keydown', (e) => {
+                if (!game.player) return;
+                
+                switch(e.key) {
+                    case 'ArrowLeft':
+                    case 'a':
+                        game.player.moveLeft();
+                        break;
+                    case 'ArrowRight':
+                    case 'd':
+                        game.player.moveRight();
+                        break;
+                    case 'ArrowUp':
+                    case 'w':
+                    case ' ':
+                        game.player.jump();
+                        break;
+                    case 'i':
+                        toggleInventory();
+                        break;
+                    case 's':
+                        toggleShop();
+                        break;
+                    case 'p':
+                        togglePvp();
+                        break;
+                    case 'b':
+                        toggleBetting();
+                        break;
+                    case 'Escape':
+                        game.menuSystem.showMenu('main');
+                        break;
+                }
+            });
+            
+            // Karolarla etkileşim için fare kontrolleri
+            canvas.addEventListener('click', (e) => {
+                if (!game.player || !game.currentWorld) return;
+                
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                // Karo koordinatlarına dönüştür
+                const tileSize = 32;
+                const tileX = Math.floor(x / tileSize);
+                const tileY = Math.floor(y / tileSize);
+                
+                // Karonun dünya sınırları içinde olup olmadığını kontrol et
+                if (tileY >= 0 && tileY < game.currentWorld.tiles.length && 
+                    tileX >= 0 && tileX < game.currentWorld.tiles[tileY].length) {
+                    const tile = game.currentWorld.tiles[tileY][tileX];
+                    
+                    // Oyuncunun etkileşim için yeterince yakın olup olmadığını kontrol et
+                    const playerTileX = Math.floor(game.player.x / tileSize);
+                    const playerTileY = Math.floor((game.player.y + game.player.height) / tileSize);
+                    
+                    const distance = Math.sqrt(Math.pow(tileX - playerTileX, 2) + Math.pow(tileY - playerTileY, 2));
+                    
+                    if (distance <= 2) { // Oyuncu 2 karo mesafedeki karolarla etkileşime geçebilir
+                        // Eğer karo çim ve ekili değilse, tohum ekle
+                        if (tile.type === 'grass' && !tile.isPlanted) {
+                            // Basic tree tohumu eklemeyi dene
+                            if (game.player.inventory.hasItem('seeds', 'BASIC_TREE', 1)) {
+                                if (tile.plant('BASIC_TREE')) {
+                                    game.player.inventory.removeItem('seeds', 'BASIC_TREE', 1);
+                                    showNotification('Tohum ekildi!');
+                                }
+                            } else if (game.player.inventory.hasItem('seeds', 'GOLDEN_TREE', 1)) {
+                                if (tile.plant('GOLDEN_TREE')) {
+                                    game.player.inventory.removeItem('seeds', 'GOLDEN_TREE', 1);
+                                    showNotification('Altın tohumu ekildi!');
+                                }
+                            } else {
+                                showNotification('Tohumunuz yok!');
+                            }
+                        } 
+                        // Eğer karo ekili ve tam büyümüşse, hasat et
+                        else if (tile.isPlanted && tile.growthStage >= tile.maxGrowthStage) {
+                            const rewards = tile.harvest();
+                            if (rewards) {
+                                game.player.inventory.addItem('blocks', 'wood', rewards.blocks);
+                                game.player.inventory.addItem('currencies', 'P', rewards.P);
+                                rewards.seeds.forEach(seedType => {
+                                    game.player.inventory.addItem('seeds', seedType, 1);
+                                });
+                                showNotification(`${rewards.blocks} blok ve ${rewards.P} P hasat edildi!`);
+                            }
+                        }
+                        // Eğer karo hava değilse, kır
+                        else if (tile.type !== 'air') {
+                            const rewards = tile.break();
+                            if (rewards) {
+                                game.player.inventory.addItem('blocks', tile.type, rewards.blocks);
+                                game.player.inventory.addItem('currencies', 'P', rewards.P);
+                                showNotification(`${rewards.blocks} ${BlockTypes[tile.type].name} bloğu kırıldı, ${rewards.P} P kazanıldı!`);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Envanteri aç/kapat
+        function toggleInventory() {
+            let inventoryPanel = document.getElementById('inventoryPanel');
+            
+            if (!inventoryPanel) {
+                inventoryPanel = document.createElement('div');
+                inventoryPanel.id = 'inventoryPanel';
+                inventoryPanel.className = 'ui-panel';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'Envanter';
+                inventoryPanel.appendChild(title);
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Kapat';
+                closeButton.addEventListener('click', toggleInventory);
+                inventoryPanel.appendChild(closeButton);
+                
+                document.getElementById('uiContainer').appendChild(inventoryPanel);
+            } else {
+                inventoryPanel.classList.toggle('hidden');
+            }
+            
+            // Envanter içeriğini güncelle
+            if (!inventoryPanel.classList.contains('hidden')) {
+                updateInventory();
+            }
+        }
+
+        // Envanteri güncelle
+        function updateInventory() {
+            const inventoryPanel = document.getElementById('inventoryPanel');
+            if (!inventoryPanel || !game.player) return;
+            
+            // Önceki içeriği temizle (başlık ve kapatma düğmesi hariç)
+            while (inventoryPanel.children.length > 2) {
+                inventoryPanel.removeChild(inventoryPanel.lastChild);
+            }
+            
+            // Para birimleri bölümü
+            const currenciesSection = document.createElement('div');
+            currenciesSection.innerHTML = '<h3>Para Birimleri</h3>';
+            
+            const pDisplay = document.createElement('div');
+            pDisplay.textContent = `P: ${game.player.inventory.items.currencies.P}`;
+            currenciesSection.appendChild(pDisplay);
+            
+            const wkDisplay = document.createElement('div');
+            wkDisplay.textContent = `WK: ${game.player.inventory.items.currencies.WK}`;
+            currenciesSection.appendChild(wkDisplay);
+            
+            const dkDisplay = document.createElement('div');
+            dkDisplay.textContent = `DK: ${game.player.inventory.items.currencies.DK}`;
+            currenciesSection.appendChild(dkDisplay);
+            
+            const bgkDisplay = document.createElement('div');
+            bgkDisplay.textContent = `BGK: ${game.player.inventory.items.currencies.BGK}`;
+            currenciesSection.appendChild(bgkDisplay);
+            
+            inventoryPanel.appendChild(currenciesSection);
+            
+            // Tohumlar bölümü
+            const seedsSection = document.createElement('div');
+            seedsSection.innerHTML = '<h3>Tohumlar</h3>';
+            
+            const seedsGrid = document.createElement('div');
+            seedsGrid.className = 'inventory-grid';
+            
+            for (const seedType in game.player.inventory.items.seeds) {
+                if (game.player.inventory.items.seeds[seedType] > 0) {
+                    const seedSlot = document.createElement('div');
+                    seedSlot.className = 'inventory-slot';
+                    
+                    const seedIcon = document.createElement('div');
+                    seedIcon.className = 'item-icon';
+                    seedIcon.style.backgroundColor = Seeds[seedType].color;
+                    seedSlot.appendChild(seedIcon);
+                    
+                    const seedCount = document.createElement('div');
+                    seedCount.className = 'item-count';
+                    seedCount.textContent = game.player.inventory.items.seeds[seedType];
+                    seedSlot.appendChild(seedCount);
+                    
+                    const seedTooltip = document.createElement('div');
+                    seedTooltip.className = 'item-tooltip';
+                    seedTooltip.textContent = Seeds[seedType].name;
+                    seedSlot.appendChild(seedTooltip);
+                    
+                    seedsGrid.appendChild(seedSlot);
+                }
+            }
+            
+            seedsSection.appendChild(seedsGrid);
+            inventoryPanel.appendChild(seedsSection);
+            
+            // Bloklar bölümü
+            const blocksSection = document.createElement('div');
+            blocksSection.innerHTML = '<h3>Bloklar</h3>';
+            
+            const blocksGrid = document.createElement('div');
+            blocksGrid.className = 'inventory-grid';
+            
+            for (const blockType in game.player.inventory.items.blocks) {
+                if (game.player.inventory.items.blocks[blockType] > 0) {
+                    const blockSlot = document.createElement('div');
+                    blockSlot.className = 'inventory-slot';
+                    
+                    const blockIcon = document.createElement('div');
+                    blockIcon.className = 'item-icon';
+                    blockIcon.style.backgroundColor = BlockTypes[blockType].color;
+                    blockSlot.appendChild(blockIcon);
+                    
+                    const blockCount = document.createElement('div');
+                    blockCount.className = 'item-count';
+                    blockCount.textContent = game.player.inventory.items.blocks[blockType];
+                    blockSlot.appendChild(blockCount);
+                    
+                    const blockTooltip = document.createElement('div');
+                    blockTooltip.className = 'item-tooltip';
+                    blockTooltip.textContent = BlockTypes[blockType].name;
+                    blockSlot.appendChild(blockTooltip);
+                    
+                    blocksGrid.appendChild(blockSlot);
+                }
+            }
+            
+            blocksSection.appendChild(blocksGrid);
+            inventoryPanel.appendChild(blocksSection);
+        }
+
+        // Dükkanı aç/kapat
+        function toggleShop() {
+            let shopPanel = document.getElementById('shopPanel');
+            
+            if (!shopPanel) {
+                shopPanel = document.createElement('div');
+                shopPanel.id = 'shopPanel';
+                shopPanel.className = 'ui-panel';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'Dükkan';
+                shopPanel.appendChild(title);
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Kapat';
+                closeButton.addEventListener('click', toggleShop);
+                shopPanel.appendChild(closeButton);
+                
+                document.getElementById('uiContainer').appendChild(shopPanel);
+            } else {
+                shopPanel.classList.toggle('hidden');
+            }
+            
+            // Dükkan içeriğini güncelle
+            if (!shopPanel.classList.contains('hidden')) {
+                updateShop();
+            }
+        }
+
+        // Dükkanı güncelle
+        function updateShop() {
+            const shopPanel = document.getElementById('shopPanel');
+            if (!shopPanel || !game.player) return;
+            
+            // Önceki içeriği temizle (başlık ve kapatma düğmesi hariç)
+            while (shopPanel.children.length > 2) {
+                shopPanel.removeChild(shopPanel.lastChild);
+            }
+            
+            // WK satın alma
+            const wkItem = document.createElement('div');
+            wkItem.className = 'shop-item';
+            
+            const wkName = document.createElement('div');
+            wkName.textContent = 'World Key (WK)';
+            wkItem.appendChild(wkName);
+            
+            const wkPrice = document.createElement('div');
+            wkPrice.textContent = 'Fiyat: 1000 P';
+            wkItem.appendChild(wkPrice);
+            
+            const wkBuyButton = document.createElement('button');
+            wkBuyButton.textContent = 'Satın Al';
+            wkBuyButton.addEventListener('click', () => {
+                if (game.economy.buyItem('WK', game.player)) {
+                    showNotification('WK satın alındı!');
+                    updateShop();
+                } else {
+                    showNotification('Yeterli P\'niz yok!');
+                }
+            });
+            wkItem.appendChild(wkBuyButton);
+            
+            shopPanel.appendChild(wkItem);
+            
+            // DK satın alma
+            const dkItem = document.createElement('div');
+            dkItem.className = 'shop-item';
+            
+            const dkName = document.createElement('div');
+            dkName.textContent = 'Dark Key (DK)';
+            dkItem.appendChild(dkName);
+            
+            const dkPrice = document.createElement('div');
+            dkPrice.textContent = 'Fiyat: 100 WK';
+            dkItem.appendChild(dkPrice);
+            
+            const dkBuyButton = document.createElement('button');
+            dkBuyButton.textContent = 'Satın Al';
+            dkBuyButton.addEventListener('click', () => {
+                if (game.economy.buyItem('DK', game.player)) {
+                    showNotification('DK satın alındı!');
+                    updateShop();
+                } else {
+                    showNotification('Yeterli WK\'nız yok!');
+                }
+            });
+            dkItem.appendChild(dkBuyButton);
+            
+            shopPanel.appendChild(dkItem);
+            
+            // BGK satın alma
+            const bgkItem = document.createElement('div');
+            bgkItem.className = 'shop-item';
+            
+            const bgkName = document.createElement('div');
+            bgkName.textContent = 'Black Gem Key (BGK)';
+            bgkItem.appendChild(bgkName);
+            
+            const bgkPrice = document.createElement('div');
+            bgkPrice.textContent = 'Fiyat: 100 DK';
+            bgkItem.appendChild(bgkPrice);
+            
+            const bgkBuyButton = document.createElement('button');
+            bgkBuyButton.textContent = 'Satın Al';
+            bgkBuyButton.addEventListener('click', () => {
+                if (game.economy.buyItem('BGK', game.player)) {
+                    showNotification('BGK satın alındı!');
+                    updateShop();
+                } else {
+                    showNotification('Yeterli DK\'nız yok!');
+                }
+            });
+            bgkItem.appendChild(bgkBuyButton);
+            
+            shopPanel.appendChild(bgkItem);
+        }
+
+        // PvP panelini aç/kapat
+        function togglePvp() {
+            let pvpPanel = document.getElementById('pvpPanel');
+            
+            if (!pvpPanel) {
+                pvpPanel = document.createElement('div');
+                pvpPanel.id = 'pvpPanel';
+                pvpPanel.className = 'ui-panel';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'PvP';
+                pvpPanel.appendChild(title);
+                
+                const instructions = document.createElement('div');
+                instructions.textContent = 'PvP yapmak için en az 5 WK stake etmeniz gerekir.';
+                pvpPanel.appendChild(instructions);
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Kapat';
+                closeButton.addEventListener('click', togglePvp);
+                pvpPanel.appendChild(closeButton);
+                
+                document.getElementById('uiContainer').appendChild(pvpPanel);
+            } else {
+                pvpPanel.classList.toggle('hidden');
+            }
+            
+            // PvP içeriğini güncelle
+            if (!pvpPanel.classList.contains('hidden')) {
+                updatePvp();
+            }
+        }
+
+        // PvP içeriğini güncelle
+        function updatePvp() {
+            const pvpPanel = document.getElementById('pvpPanel');
+            if (!pvpPanel || !game.player) return;
+            
+            // Önceki içeriği temizle (başlık, talimatlar ve kapatma düğmesi hariç)
+            while (pvpPanel.children.length > 3) {
+                pvpPanel.removeChild(pvpPanel.lastChild);
+            }
+            
+            // PvP maç oluşturma formu
+            const createMatchForm = document.createElement('div');
+            createMatchForm.innerHTML = '<h3>PvP Maçı Oluştur</h3>';
+            
+            const stakeAmountLabel = document.createElement('label');
+            stakeAmountLabel.textContent = 'Stake Miktarı:';
+            createMatchForm.appendChild(stakeAmountLabel);
+            
+            const stakeAmountInput = document.createElement('input');
+            stakeAmountInput.type = 'number';
+            stakeAmountInput.min = '5';
+            stakeAmountInput.value = '5';
+            createMatchForm.appendChild(stakeAmountInput);
+            
+            const stakeCurrencyLabel = document.createElement('label');
+            stakeCurrencyLabel.textContent = 'Stake Para Birimi:';
+            createMatchForm.appendChild(stakeCurrencyLabel);
+            
+            const stakeCurrencySelect = document.createElement('select');
+            
+            const wkOption = document.createElement('option');
+            wkOption.value = 'WK';
+            wkOption.textContent = 'WK';
+            
+            const dkOption = document.createElement('option');
+            dkOption.value = 'DK';
+            dkOption.textContent = 'DK';
+            
+            const bgkOption = document.createElement('option');
+            bgkOption.value = 'BGK';
+            bgkOption.textContent = 'BGK';
+            
+            stakeCurrencySelect.appendChild(wkOption);
+            stakeCurrencySelect.appendChild(dkOption);
+            stakeCurrencySelect.appendChild(bgkOption);
+            createMatchForm.appendChild(stakeCurrencySelect);
+            
+            const createMatchButton = document.createElement('button');
+            createMatchButton.textContent = 'Maç Oluştur';
+            createMatchButton.addEventListener('click', () => {
+                const amount = parseInt(stakeAmountInput.value);
+                const currency = stakeCurrencySelect.value;
+                
+                if (game.player.inventory.hasItem('currencies', currency, amount)) {
+                    if ((currency === 'WK' && amount >= 5) || 
+                        (currency === 'DK' && amount >= 1) || 
+                        (currency === 'BGK' && amount >= 1)) {
+                        // PvP maçı oluşturma mantığı
+                        showNotification(`${amount} ${currency} stake edilerek PvP maçı oluşturuldu!`);
+                    } else {
+                        showNotification(`Minimum stake miktarı: ${currency === 'WK' ? '5 WK' : currency === 'DK' ? '1 DK' : '1 BGK'}`);
+                    }
+                } else {
+                    showNotification(`Yeterli ${currency}'nız yok!`);
+                }
+            });
+            createMatchForm.appendChild(createMatchButton);
+            
+            pvpPanel.appendChild(createMatchForm);
+            
+            // Aktif maçlar listesi
+            const activeMatches = game.pvpSystem.getActiveMatches();
+            
+            if (activeMatches.length > 0) {
+                const matchesList = document.createElement('div');
+                matchesList.innerHTML = '<h3>Aktif Maçlar</h3>';
+                
+                activeMatches.forEach(match => {
+                    const matchItem = document.createElement('div');
+                    matchItem.className = 'pvp-match-item';
+                    
+                    const matchInfo = document.createElement('div');
+                    matchInfo.textContent = `${match.player1.name} vs ${match.player2.name}`;
+                    matchItem.appendChild(matchInfo);
+                    
+                    const matchStake = document.createElement('div');
+                    let stakeText = '';
+                    for (const currency in match.stakes) {
+                        if (match.stakes[currency] > 0) {
+                            stakeText += `${match.stakes[currency]} ${currency} `;
+                        }
+                    }
+                    matchStake.textContent = `Stake: ${stakeText}`;
+                    matchItem.appendChild(matchStake);
+                    
+                    const watchButton = document.createElement('button');
+                    watchButton.textContent = 'İzle';
+                    watchButton.addEventListener('click', () => {
+                        // Maçı izleme mantığı
+                        showNotification(`${match.player1.name} vs ${match.player2.name} maçı izleniyor...`);
+                    });
+                    matchItem.appendChild(watchButton);
+                    
+                    matchesList.appendChild(matchItem);
+                });
+                
+                pvpPanel.appendChild(matchesList);
+            }
+        }
+
+        // Bahis panelini aç/kapat
+        function toggleBetting() {
+            let bettingPanel = document.getElementById('bettingPanel');
+            
+            if (!bettingPanel) {
+                bettingPanel = document.createElement('div');
+                bettingPanel.id = 'bettingPanel';
+                bettingPanel.className = 'ui-panel';
+                
+                const title = document.createElement('h2');
+                title.textContent = 'Bahis';
+                bettingPanel.appendChild(title);
+                
+                const instructions = document.createElement('div');
+                instructions.textContent = 'Bahis yapmak için aktif maçları izleyebilir ve bahis yapabilirsiniz.';
+                bettingPanel.appendChild(instructions);
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Kapat';
+                closeButton.addEventListener('click', toggleBetting);
+                bettingPanel.appendChild(closeButton);
+                
+                document.getElementById('uiContainer').appendChild(bettingPanel);
+            } else {
+                bettingPanel.classList.toggle('hidden');
+            }
+            
+            // Bahis içeriğini güncelle
+            if (!bettingPanel.classList.contains('hidden')) {
+                updateBetting();
+            }
+        }
+
+        // Bahis içeriğini güncelle
+        function updateBetting() {
+            const bettingPanel = document.getElementById('bettingPanel');
+            if (!bettingPanel || !game.player) return;
+            
+            // Önceki içeriği temizle (başlık, talimatlar ve kapatma düğmesi hariç)
+            while (bettingPanel.children.length > 3) {
+                bettingPanel.removeChild(bettingPanel.lastChild);
+            }
+            
+            // Bahis dünyaları listesi
+            if (game.bettingSystem.bettingWorlds.length > 0) {
+                const worldsList = document.createElement('div');
+                worldsList.innerHTML = '<h3>Bahis Dünyaları</h3>';
+                
+                game.bettingSystem.bettingWorlds.forEach(world => {
+                    if (world.status === 'active') {
+                        const worldItem = document.createElement('div');
+                        worldItem.className = 'betting-world-item';
+                        
+                        const worldName = document.createElement('div');
+                        worldName.textContent = world.name;
+                        worldItem.appendChild(worldName);
+                        
+                        const worldHoster = document.createElement('div');
+                        worldHoster.textContent = `Hoster: ${world.hoster.name}`;
+                        worldItem.appendChild(worldHoster);
+                        
+                        const enterButton = document.createElement('button');
+                        enterButton.textContent = 'Gir';
+                        enterButton.addEventListener('click', () => {
+                            // Bahis dünyasına giriş mantığı
+                            showNotification(`${world.name} bahis dünyasına giriliyor...`);
+                        });
+                        worldItem.appendChild(enterButton);
+                        
+                        worldsList.appendChild(worldItem);
+                    }
+                });
+                
+                bettingPanel.appendChild(worldsList);
+            }
+            
+            // Hoster başvuru formu
+            const hosterForm = document.createElement('div');
+            hosterForm.innerHTML = '<h3>Bahis Hosterı Ol</h3>';
+            
+            const hosterInfo = document.createElement('div');
+            hosterInfo.textContent = 'Bahis hosteri olmak için 50 DK + 15 DK depozito gerekir.';
+            hosterForm.appendChild(hosterInfo);
+            
+            const applyButton = document.createElement('button');
+            applyButton.textContent = 'Başvur';
+            applyButton.addEventListener('click', () => {
+                if (game.player.inventory.hasItem('currencies', 'DK', 65)) {
+                    // Hoster başvuru mantığı
+                    showNotification('Bahis hosteri başvurusu gönderildi!');
+                } else {
+                    showNotification('Bahis hosteri olmak için 65 DK gerekir!');
+                }
+            });
+            hosterForm.appendChild(applyButton);
+            
+            bettingPanel.appendChild(hosterForm);
+        }
+
+        // Loading ekranını güncelle
+        function updateLoadingProgress(percent) {
+            const loadingProgress = document.getElementById('loadingProgress');
+            if (loadingProgress) {
+                loadingProgress.style.width = percent + '%';
+            }
+        }
+
+        // Sayfa yüklendiğinde oyunu başlat
+        window.addEventListener('load', () => {
+            console.log("Sayfa yüklendi, oyun başlatılıyor...");
+            
+            // Loading ekranını göster
+            updateLoadingProgress(10);
+            
+            // Kısa bir gecikme ile oyunu başlat
+            setTimeout(() => {
+                updateLoadingProgress(50);
+                
+                setTimeout(() => {
+                    updateLoadingProgress(100);
+                    
+                    setTimeout(() => {
+                        // Loading ekranını kaldır
+                        const loadingScreen = document.getElementById('loadingScreen');
+                        if (loadingScreen) {
+                            loadingScreen.style.display = 'none';
+                        }
+                        
+                        // Oyunu başlat
+                        initGame();
+                    }, 500);
+                }, 500);
+            }, 500);
+        });
+    </script>
 </body>
 </html>
