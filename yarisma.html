@@ -2,160 +2,43 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>Hacked by PenguX</title>
+  <title>Nyqros Erişim Panel</title>
   <style>
     body {
-      margin: 0;
-      padding: 0;
-      background-color: black;
-      color: white;
-      font-family: 'Courier New', monospace;
-      overflow: hidden;
-      text-align: center;
-      animation: shake 0.5s infinite alternate;
-    }
-
-    h1 {
-      font-size: 5em;
-      margin-top: 15vh;
-      text-shadow: 0 0 15px red, 0 0 40px red;
-      animation: glitch 1s infinite;
-    }
-
-    .quote {
-      font-size: 1.5em;
-      color: #0ff;
-      margin-top: 30px;
-      font-style: italic;
-      animation: fadeIn 2s ease-in;
-    }
-
-    .warning {
-      font-size: 1.2em;
-      color: red;
-      margin-top: 40px;
-      animation: blink 1s infinite;
-    }
-
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(2px, -2px); }
-      60% { transform: translate(-1px, 1px); }
-      80% { transform: translate(1px, -1px); }
-      100% { transform: translate(0); }
-    }
-
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes shake {
-      0% { transform: translate(0px, 0px); }
-      100% { transform: translate(1px, -1px); }
-    }
-
-    #matrix {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
-
-    .ataturk {
-      margin-top: 50px;
-      opacity: 0.9;
-      width: 250px;
-      max-width: 80%;
-      filter: grayscale(0%) drop-shadow(0 0 10px white);
-      border: 2px solid white;
-      border-radius: 10px;
-      animation: fadeIn 3s ease-in-out;
-    }
-
-    .video-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       height: 100vh;
-      object-fit: cover;
-      z-index: -10;
-      opacity: 0.3;
-      filter: grayscale(100%) contrast(1.2);
+      margin: 0;
     }
-
-    .note {
-      position: absolute;
-      bottom: 15px;
-      width: 100%;
-      font-size: 1em;
-      color: #999;
+    h1 {
+      color: #222;
+      margin-bottom: 40px;
+    }
+    .btn {
+      display: block;
+      width: 200px;
+      padding: 12px;
+      margin: 10px;
+      font-size: 16px;
       text-align: center;
-      font-style: italic;
+      text-decoration: none;
+      color: #fff;
+      background: #4CAF50;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #45a049;
     }
   </style>
 </head>
 <body>
-  <!-- YouTube Video Embed -->
-  <iframe class="video-bg" src="https://www.youtube.com/embed/zUreZ8aMqGE?autoplay=1&mute=1&loop=1&playlist=zUreZ8aMqGE" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-
-  <h1>HACKED BY PENGUX</h1>
-  <p class="quote">"Ben, manevî miras olarak hiçbir dogma, hiçbir donmuş ve kalıplaşmış kural bırakmıyorum. Benim manevî mirasım bilim ve akıldır." — M. K. Atatürk</p>
-  <p class="warning">Güvenliğin yoksa, sistemin senin değildir.</p>
-  <img class="ataturk" src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Ataturk1930s.jpg/800px-Ataturk1930s.jpg" alt="Mustafa Kemal Atatürk">
-
-  <audio autoplay loop>
-    <source src="https://cdn.pixabay.com/audio/2022/10/28/audio_4d35f6acdf.mp3" type="audio/mpeg">
-  </audio>
-
-  <canvas id="matrix"></canvas>
-
-  <p class="note">Sisteme zarar verilmemiştir. Bu sadece dostça bir uyarıdır.</p>
-
-  <script>
-    const canvas = document.getElementById("matrix");
-    const ctx = canvas.getContext("2d");
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-
-    const letters = "ATATÜRK BİLİM AKIL PENGUX".split("");
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array.from({ length: columns }).fill(1);
-
-    function draw() {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#0f0";
-      ctx.font = fontSize + "px monospace";
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height || Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      }
-    }
-
-    setInterval(draw, 33);
-
-    // Ses durdurma fonksiyonu
-    const audio = document.querySelector("audio");
-    document.addEventListener("keydown", function(e) {
-      if (e.key === "m" || e.key === "M") {
-        audio.muted = !audio.muted;
-        alert("Müzik " + (audio.muted ? "kapatıldı" : "açıldı") + " (M tuşuna tekrar basarak değiştirebilirsin.)");
-      }
-    });
-  </script>
+  <h1>Nyqros Erişim Panel</h1>
+  <a href="https://green-businesses.gl.at.ply.gg:50725" class="btn">Dosyalar</a>
+  <a href="https://functions-film.gl.at.ply.gg:4820" class="btn">İstatistik</a>
 </body>
 </html>
